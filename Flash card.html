@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>2-Look OLL + PLL Flashcards</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    * { -webkit-tap-highlight-color: transparent; }
+    button, [role="button"] { touch-action: manipulation; }
+
+    .perspective-1000 { perspective: 1200px; }
+    .transform-style-3d { transform-style: preserve-3d; transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1); }
+    .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+    .rotate-y-180 { transform: rotateY(180deg); }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    .yellow-glow { filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.35)); }
+    .sky-glow { filter: drop-shadow(0 0 5px rgba(14, 165, 233, 0.4)); }
+
+    body {
+      background-image:
+        radial-gradient(circle at 15% 10%, rgba(250, 204, 21, 0.06) 0%, transparent 40%),
+        radial-gradient(circle at 85% 90%, rgba(14, 165, 233, 0.06) 0%, transparent 40%),
+        radial-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 24px 24px;
+      background-attachment: fixed;
+    }
+
+    .confetti-piece {
+      position: fixed; top: -20px; width: 9px; height: 13px; border-radius: 2px;
+      z-index: 9999; pointer-events: none; animation: confetti-fall linear forwards;
+    }
+    @keyframes confetti-fall {
+      0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+      100% { opacity: 0; transform: translateY(110vh) rotate(720deg); }
+    }
+    @keyframes tap-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(0.94); } }
+    .tap-anim { animation: tap-pulse 0.22s ease; }
+    @keyframes check-pop {
+      0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+      60% { transform: scale(1.25); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .check-pop { animation: check-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    @keyframes modal-in { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
+    .modal-in { animation: modal-in 0.2s ease; }
+
+    button:focus-visible, a:focus-visible { outline: 2px solid #FACC15; outline-offset: 2px; }
+    .card-surface { background: linear-gradient(140deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%); }
+
+    .filter-scroll {
+      display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px;
+      scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    }
+    .filter-scroll::-webkit-scrollbar { display: none; }
+    @media (min-width: 768px) {
+      .filter-scroll { flex-wrap: wrap; overflow-x: visible; padding-bottom: 0; }
+    }
+    .filter-scroll > button { flex-shrink: 0; white-space: nowrap; }
+
+    .card-touch-zone { touch-action: pan-y; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-[100dvh] flex flex-col font-sans selection:bg-yellow-400 selection:text-slate-950">
+
+  <!-- HEADER -->
+  <header class="border-b border-slate-800/80 bg-slate-900/70 backdrop-blur-md sticky top-0 z-30">
+    <div class="max-w-5xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-800 border border-slate-700 p-1.5 grid grid-cols-3 gap-0.5 shadow-inner shrink-0">
+          <span class="bg-slate-600 rounded-[2px]"></span>
+          <span class="bg-yellow-400 rounded-[2px]"></span>
+          <span class="bg-slate-600 rounded-[2px]"></span>
+          <span class="bg-yellow-400 rounded-[2px]"></span>
+          <span class="bg-yellow-400 rounded-[2px]"></span>
+          <span class="bg-yellow-400 rounded-[2px]"></span>
+          <span class="bg-yellow-400 rounded-[2px]"></span>
+          <span class="bg-yellow-400 rounded-[2px]"></span>
+          <span class="bg-slate-600 rounded-[2px]"></span>
+        </div>
+        <div class="min-w-0">
+          <h1 class="text-sm sm:text-lg font-extrabold tracking-tight text-white flex items-baseline gap-1.5">
+            <span>2-Look</span>
+            <span class="text-yellow-400">OLL</span>
+            <span class="text-sky-400">+PLL</span>
+          </h1>
+          <p class="text-[10px] sm:text-xs text-slate-400 hidden xs:block truncate">16 công thức • Mobile optimized</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1.5 shrink-0">
+        <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-slate-800/60 rounded-lg border border-slate-700/60">
+          <svg class="w-3.5 h-3.5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+          </svg>
+          <span id="sessionFlips" class="text-xs font-bold text-yellow-400 font-mono">0</span>
+        </div>
+
+        <button onclick="openHelp()" title="Trợ giúp (?)" class="w-9 h-9 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700/70 flex items-center justify-center text-slate-300 hover:text-white transition active:scale-95">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </button>
+
+        <div class="flex items-center bg-slate-800/90 p-0.5 rounded-lg border border-slate-700/70">
+          <button id="btnModeFlashcard" onclick="setViewMode('flashcard')" class="px-2.5 py-1.5 rounded-md text-[11px] sm:text-xs font-semibold transition-all bg-yellow-400 text-slate-950 shadow">
+            Thẻ
+          </button>
+          <button id="btnModeCheatsheet" onclick="setViewMode('cheatsheet')" class="px-2.5 py-1.5 rounded-md text-[11px] sm:text-xs font-semibold transition-all text-slate-300 hover:text-white">
+            Bảng
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-4 py-3 sm:py-5 flex flex-col gap-3 sm:gap-5">
+
+    <!-- FILTER + PROGRESS -->
+    <section class="flex flex-col gap-2.5 bg-slate-900/60 border border-slate-800 p-2.5 sm:p-3 rounded-2xl">
+      <div class="filter-scroll" id="filterButtons">
+        <button onclick="setFilter('all')" data-filter="all" class="filter-btn px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition">
+          Tất cả (16)
+        </button>
+        <button onclick="setFilter('oll1')" data-filter="oll1" class="filter-btn px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition">
+          OLL ① Edges (3)
+        </button>
+        <button onclick="setFilter('oll2')" data-filter="oll2" class="filter-btn px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition">
+          OLL ② Corners (7)
+        </button>
+        <button onclick="setFilter('pll1')" data-filter="pll1" class="filter-btn px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition">
+          PLL ① Corner Swap (2)
+        </button>
+        <button onclick="setFilter('pll2')" data-filter="pll2" class="filter-btn px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition">
+          PLL ② Edges (4)
+        </button>
+        <button onclick="setFilter('unlearned')" data-filter="unlearned" class="filter-btn px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition">
+          Cần ôn (<span id="unlearnedCount">16</span>)
+        </button>
+      </div>
+
+      <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-800/60">
+        <div class="flex items-center gap-2 flex-1">
+          <div class="text-[11px] sm:text-xs text-slate-400 font-medium whitespace-nowrap">
+            Đã thuộc: <span id="masteredText" class="text-emerald-400 font-bold font-mono">0/16</span>
+          </div>
+          <div class="flex-1 max-w-[140px] h-2 bg-slate-800 rounded-full overflow-hidden">
+            <div id="masteredBar" class="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all duration-500 ease-out" style="width: 0%"></div>
+          </div>
+        </div>
+        <button onclick="resetProgress()" class="text-[11px] text-slate-500 hover:text-red-400 underline transition">Đặt lại</button>
+      </div>
+    </section>
+
+    <!-- FLASHCARD VIEW -->
+    <section id="flashcardView" class="flex-1 flex flex-col items-center justify-center gap-3">
+      <div id="emptyFilterState" class="hidden w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 text-center my-4">
+        <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-2xl">✓</div>
+        <h3 class="text-base sm:text-lg font-bold text-white mb-1" id="emptyTitle">Tuyệt vời!</h3>
+        <p class="text-xs sm:text-sm text-slate-400 mb-4" id="emptyDesc">Không còn thẻ nào. Chuyển sang xem tất cả để luyện phản xạ.</p>
+        <div class="flex gap-2 justify-center flex-wrap">
+          <button onclick="setFilter('all')" class="px-4 py-2 rounded-xl bg-yellow-400 text-slate-950 font-bold text-xs sm:text-sm hover:bg-yellow-300 transition active:scale-95">
+            Xem tất cả 16 thẻ
+          </button>
+        </div>
+      </div>
+
+      <div id="cardWrapper" class="w-full max-w-xl">
+        <div class="flex items-center justify-between mb-2 px-1">
+          <span id="cardCounter" class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-400 font-mono">
+            Thẻ 1 / 16
+          </span>
+          <button onclick="shuffleCards()" class="flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 text-[11px] sm:text-xs font-medium text-slate-200 transition active:scale-95" title="Xáo trộn (S)">
+            <svg class="w-3.5 h-3.5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Xáo trộn
+          </button>
+        </div>
+
+        <!-- 3D CARD -->
+        <div id="cardTouchZone" class="perspective-1000 w-full h-[440px] sm:h-[490px] md:h-[510px] cursor-pointer select-none card-touch-zone" onclick="handleCardClick()">
+          <div id="cardInner" class="relative w-full h-full transform-style-3d">
+
+            <!-- FRONT -->
+            <div class="absolute inset-0 backface-hidden card-surface border-2 border-slate-800 hover:border-slate-700 rounded-3xl p-4 sm:p-6 flex flex-col justify-between shadow-2xl transition-colors">
+              <div class="flex items-center justify-between gap-2">
+                <span id="frontStepBadge" class="px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold"></span>
+                <span id="frontStatusBadge" class="px-2 py-1 rounded-full text-[10px] sm:text-[11px] font-semibold bg-slate-800 text-slate-400"></span>
+              </div>
+
+              <div class="flex-1 flex flex-col items-center justify-center my-1">
+                <div id="frontSvgContainer" class="w-44 h-44 xs:w-48 xs:h-48 sm:w-60 sm:h-60 flex items-center justify-center"></div>
+                <span class="mt-1.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-900/70 px-2.5 py-0.5 rounded-full border border-slate-800">
+                  ▲ Mặt trước
+                </span>
+              </div>
+
+              <div class="flex flex-col items-center gap-1.5">
+                <div id="hintBox" class="hidden w-full bg-amber-500/5 border border-amber-500/30 rounded-lg px-3 py-1.5 text-[11px] sm:text-xs text-amber-200 text-center leading-relaxed"></div>
+                <div class="w-full flex items-center justify-between pt-1 border-t border-slate-800/80">
+                  <button type="button" onclick="event.stopPropagation(); toggleHint()" class="text-[11px] sm:text-xs font-semibold text-amber-400 hover:text-amber-300 flex items-center gap-1 py-1 px-2 rounded-lg hover:bg-slate-800 transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                    <span id="hintBtnText">Gợi ý</span>
+                  </button>
+                  <span class="text-[10px] text-slate-500 hidden sm:flex items-center gap-1">
+                    Lật: <kbd class="px-1 py-0.5 bg-slate-800 border border-slate-700 rounded text-[9px] font-mono text-slate-300">Space</kbd>
+                  </span>
+                  <span class="text-[10px] text-slate-500 sm:hidden">Chạm để lật</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- BACK -->
+            <div id="backFace" class="absolute inset-0 backface-hidden rotate-y-180 card-surface border-2 rounded-3xl p-4 sm:p-6 flex flex-col justify-between shadow-2xl">
+              <div class="flex items-start justify-between gap-2 border-b border-slate-800 pb-2.5">
+                <div class="min-w-0 flex-1">
+                  <span id="backStepLabel" class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider"></span>
+                  <h2 id="backCaseName" class="text-base sm:text-xl md:text-2xl font-extrabold text-white mt-0.5 leading-tight"></h2>
+                  <p id="backCaseSub" class="text-[10px] sm:text-xs text-slate-400 mt-0.5 leading-snug"></p>
+                </div>
+                <div id="backMiniSvg" class="w-14 h-14 sm:w-16 sm:h-16 shrink-0 bg-slate-950/70 p-1 rounded-lg border border-slate-800"></div>
+              </div>
+
+              <div class="my-auto py-1.5">
+                <div class="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center justify-between">
+                  <span>Công thức</span>
+                  <button type="button" onclick="event.stopPropagation(); copyAlgorithm()" class="text-[10px] sm:text-[11px] text-yellow-400 hover:text-yellow-300 flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-yellow-400/10 border border-yellow-400/20 transition">
+                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                    Copy
+                  </button>
+                </div>
+                <div id="backAlgorithm" class="bg-slate-950 border border-slate-800 rounded-xl px-2 py-3 text-center font-mono text-sm xs:text-base sm:text-xl md:text-2xl font-bold tracking-wide shadow-inner leading-relaxed break-words"></div>
+                <div id="backAltAlgo" class="mt-1 text-[10px] sm:text-[11px] text-slate-500 text-center leading-snug"></div>
+              </div>
+
+              <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-2.5 mb-2">
+                <div class="text-[9px] sm:text-[10px] font-bold text-emerald-400 uppercase tracking-wider mb-0.5">🎯 Cách đặt khối</div>
+                <p id="backTip" class="text-[11px] sm:text-xs md:text-sm text-slate-200 leading-relaxed"></p>
+              </div>
+
+              <div class="grid grid-cols-2 gap-1.5">
+                <button onclick="event.stopPropagation(); rateCard(false)" class="py-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-[11px] sm:text-xs font-bold text-slate-300 transition active:scale-95">
+                  ↻ Cần ôn
+                </button>
+                <button onclick="event.stopPropagation(); rateCard(true)" class="py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[11px] sm:text-xs font-bold transition active:scale-95">
+                  ✓ Đã thuộc
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- CONTROLS -->
+        <div class="mt-3 grid grid-cols-3 gap-2">
+          <button onclick="prevCard()" class="flex items-center justify-center gap-1 py-2.5 px-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs sm:text-sm font-semibold text-slate-200 transition active:scale-95">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 19l-7-7 7-7" />
+            </svg>
+            <span>Trước</span>
+          </button>
+
+          <button id="btnToggleMastered" onclick="toggleMasteredCurrent()" class="flex items-center justify-center gap-1 py-2.5 px-2 rounded-xl transition active:scale-95 font-bold text-xs sm:text-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+            </svg>
+            <span id="btnMasteredLabel">Thuộc</span>
+          </button>
+
+          <button onclick="nextCard()" class="flex items-center justify-center gap-1 py-2.5 px-2 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 text-xs sm:text-sm font-bold transition active:scale-95 shadow-lg shadow-yellow-400/10">
+            <span>Tiếp</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- LEGENDS -->
+        <div class="mt-3 bg-slate-900/40 border border-slate-800/60 rounded-xl px-3 py-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[10px] sm:text-[11px] text-slate-400">
+          <span><strong class="text-sky-400 font-mono">R</strong><strong class="text-orange-400 font-mono">L</strong><strong class="text-yellow-400 font-mono">U</strong><strong class="text-red-400 font-mono">D</strong><strong class="text-emerald-400 font-mono">F</strong><strong class="text-purple-400 font-mono">B</strong>: 90°</span>
+          <span><strong class="text-slate-200 font-mono">'</strong>: ngược</span>
+          <span><strong class="text-slate-200 font-mono">2</strong>: 180°</span>
+          <span><strong class="text-amber-400 font-mono">r / f / M</strong>: 2 lớp / slice</span>
+        </div>
+
+        <div id="pllColorLegend" class="mt-2 bg-slate-900/40 border border-slate-800/60 rounded-xl px-3 py-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[10px] sm:text-[11px] text-slate-400">
+          <span class="font-bold text-sky-300 w-full text-center sm:w-auto">🎨 Màu mặt bên (PLL):</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-sm" style="background:#22C55E"></span>Trước</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-sm" style="background:#3B82F6"></span>Sau</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-sm" style="background:#F97316"></span>Trái</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-sm" style="background:#EF4444"></span>Phải</span>
+          <span class="flex items-center gap-1 text-sky-400"><span class="inline-block w-2.5 h-2.5 rounded-sm" style="background:#0EA5E9"></span>Mũi tên = hướng</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHEATSHEET -->
+    <section id="cheatsheetView" class="hidden flex-col gap-5 pb-8">
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <span class="px-2.5 py-1 rounded-md bg-yellow-400 text-slate-950 text-[11px] font-extrabold uppercase">OLL ①</span>
+          <h2 class="text-xs sm:text-base font-bold text-white">Edge Orientation (3)</h2>
+        </div>
+        <div id="gridOll1" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+      </div>
+
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <span class="px-2.5 py-1 rounded-md bg-yellow-400 text-slate-950 text-[11px] font-extrabold uppercase">OLL ②</span>
+          <h2 class="text-xs sm:text-base font-bold text-white">Corner Cases (7)</h2>
+        </div>
+        <div id="gridOll2" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+      </div>
+
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <span class="px-2.5 py-1 rounded-md bg-sky-400 text-slate-950 text-[11px] font-extrabold uppercase">PLL ①</span>
+          <h2 class="text-xs sm:text-base font-bold text-white">Corner Swap (2)</h2>
+        </div>
+        <div id="gridPll1" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+      </div>
+
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <span class="px-2.5 py-1 rounded-md bg-sky-400 text-slate-950 text-[11px] font-extrabold uppercase">PLL ②</span>
+          <h2 class="text-xs sm:text-base font-bold text-white">Edges (4)</h2>
+        </div>
+        <div id="gridPll2" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- HELP MODAL -->
+  <div id="helpModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4" onclick="if(event.target===this) closeHelp()">
+    <div class="modal-in bg-slate-900 border border-slate-800 rounded-2xl p-5 max-w-md w-full shadow-2xl max-h-[90dvh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-base font-bold text-white">⌨️ Phím tắt & Trợ giúp</h2>
+        <button onclick="closeHelp()" class="w-8 h-8 rounded-lg hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition">✕</button>
+      </div>
+      <div class="space-y-1.5 text-sm">
+        <div class="flex items-center justify-between py-1.5 border-b border-slate-800/60">
+          <span class="text-slate-300">Lật thẻ</span>
+          <kbd class="px-2 py-1 bg-slate-800 border border-slate-700 rounded text-xs font-mono text-yellow-400">Space</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1.5 border-b border-slate-800/60">
+          <span class="text-slate-300">Trước / Tiếp</span>
+          <div class="flex gap-1">
+            <kbd class="px-2 py-1 bg-slate-800 border border-slate-700 rounded text-xs font-mono text-yellow-400">←</kbd>
+            <kbd class="px-2 py-1 bg-slate-800 border border-slate-700 rounded text-xs font-mono text-yellow-400">→</kbd>
+          </div>
+        </div>
+        <div class="flex items-center justify-between py-1.5 border-b border-slate-800/60">
+          <span class="text-slate-300">Bật/tắt gợi ý</span>
+          <kbd class="px-2 py-1 bg-slate-800 border border-slate-700 rounded text-xs font-mono text-yellow-400">H</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1.5 border-b border-slate-800/60">
+          <span class="text-slate-300">Đánh dấu đã thuộc</span>
+          <kbd class="px-2 py-1 bg-slate-800 border border-slate-700 rounded text-xs font-mono text-yellow-400">M</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1.5 border-b border-slate-800/60">
+          <span class="text-slate-300">Xáo trộn</span>
+          <kbd class="px-2 py-1 bg-slate-800 border border-slate-700 rounded text-xs font-mono text-yellow-400">S</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1.5 border-b border-slate-800/60">
+          <span class="text-slate-300">Sao chép công thức</span>
+          <kbd class="px-2 py-1 bg-slate-800 border border-slate-700 rounded text-xs font-mono text-yellow-400">C</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1.5">
+          <span class="text-slate-300">Mở trợ giúp</span>
+          <kbd class="px-2 py-1 bg-slate-800 border border-slate-700 rounded text-xs font-mono text-yellow-400">?</kbd>
+        </div>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-slate-800/60">
+        <div class="text-[11px] font-bold text-sky-400 uppercase mb-1.5">📱 Trên Mobile</div>
+        <ul class="text-xs text-slate-400 space-y-1 leading-relaxed">
+          <li>• <strong class="text-slate-200">Vuốt trái/phải</strong> trên thẻ để chuyển</li>
+          <li>• <strong class="text-slate-200">Chạm</strong> thẻ để lật</li>
+        </ul>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-slate-800/60">
+        <div class="text-[11px] font-bold text-sky-400 uppercase mb-1.5">🎨 Đọc sơ đồ PLL</div>
+        <ul class="text-xs text-slate-400 space-y-1 leading-relaxed">
+          <li>• Vạch bên hông: <strong class="text-emerald-400">Xanh lá = Trước</strong>, <strong class="text-sky-400">Xanh dương = Sau</strong>, <strong class="text-orange-400">Cam = Trái</strong>, <strong class="text-red-400">Đỏ = Phải</strong></li>
+          <li>• Vạch <strong>lệch màu</strong> = góc/cạnh đó cần hoán vị</li>
+          <li>• Mũi tên <span class="text-sky-400 font-bold">xanh dương</span> = hướng hoán vị</li>
+        </ul>
+      </div>
+
+      <p class="text-[11px] text-slate-500 mt-3 pt-3 border-t border-slate-800/60 leading-relaxed">
+        💡 Chữ <strong class="text-sky-400">R</strong>, <strong class="text-yellow-400">U</strong>, <strong class="text-emerald-400">F</strong>, <strong class="text-orange-400">L</strong> trong công thức được tô màu theo mặt xoay.
+      </p>
+    </div>
+  </div>
+
+  <div id="confettiContainer"></div>
+  <div id="toast" class="fixed bottom-4 right-4 bg-slate-800 border border-slate-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-xl opacity-0 pointer-events-none transition-opacity duration-200 z-50 max-w-[85vw]"></div>
+
+  <script>
+    const FACE = { FRONT: '#22C55E', BACK: '#3B82F6', LEFT: '#F97316', RIGHT: '#EF4444', INACTIVE: '#1E293B' };
+
+    const OLL_CASES = [
+      {
+        id: 'edge-line', type: 'oll', step: 1, stepName: 'OLL ① • Edge Orientation',
+        name: 'Line', subtitle: '2 cạnh vàng đối diện tạo đường thẳng',
+        algorithm: "F (R U R' U') F'", altAlgorithm: '',
+        hint: '2 cạnh vàng thẳng hàng trên đỉnh. Xoay U để thanh ngang nằm từ trái sang phải.',
+        tip: 'Đặt thanh vàng nằm ngang. Làm F → Sexy Move (R U R\' U\') → trả F\'.',
+        top: [0,0,0, 1,1,1, 0,0,0],
+        sides: { top:[0,1,0], bottom:[0,1,0], left:[0,0,0], right:[0,0,0] }
+      },
+      {
+        id: 'edge-l', type: 'oll', step: 1, stepName: 'OLL ① • Edge Orientation',
+        name: 'L-Shape', subtitle: '2 cạnh vàng kề nhau ở Front và Right',
+        algorithm: "f (R U R' U') f'", altAlgorithm: "Hoặc: F U R U' R' F'",
+        hint: '2 cạnh vàng vuông góc. Đặt ở hướng 6 giờ (Front) và 3 giờ (Right).',
+        tip: 'Xoay U để 2 cạnh vàng ở Front & Right → dùng f (2 lớp) + Sexy Move + f\'.',
+        top: [0,0,0, 0,1,1, 0,1,0],
+        sides: { top:[0,1,0], bottom:[0,0,0], left:[0,1,0], right:[0,0,0] }
+      },
+      {
+        id: 'edge-dot', type: 'oll', step: 1, stepName: 'OLL ① • Edge Orientation',
+        name: 'Dot', subtitle: 'Chỉ tâm vàng, không có cạnh nào vàng hướng lên',
+        algorithm: "F (R U R' U') F'  f (R U R' U') f'", altAlgorithm: '= Line + L-Shape',
+        hint: 'Không có cạnh vàng nào trên đỉnh.',
+        tip: 'Làm công thức Line → ra chữ L → nối tiếp L-Shape KHÔNG cần xoay U!',
+        top: [0,0,0, 0,1,0, 0,0,0],
+        sides: { top:[0,1,0], bottom:[0,1,0], left:[0,1,0], right:[0,1,0] }
+      },
+      {
+        id: 'corner-sune', type: 'oll', step: 2, stepName: 'OLL ② • Corner Cases',
+        name: 'Sune', subtitle: '1 góc vàng trên đỉnh, góc FL hướng vàng ra Front',
+        algorithm: "R U R' U R U2 R'", altAlgorithm: '',
+        hint: 'Cross + 1 góc vàng. Đặt góc vàng ở FL, góc FR hướng vàng ra Front.',
+        tip: 'Góc vàng duy nhất ở Front-Left. Nhìn FR thấy vàng hướng ra trước → Sune.',
+        top: [0,1,0, 1,1,1, 1,1,0],
+        sides: { top:[1,0,0], bottom:[0,0,1], left:[0,0,0], right:[1,0,0] }
+      },
+      {
+        id: 'corner-antisune', type: 'oll', step: 2, stepName: 'OLL ② • Corner Cases',
+        name: 'Anti-sune', subtitle: '1 góc vàng ở BL, góc FL hướng vàng ra Front',
+        algorithm: "R U2 R' U' R U' R'", altAlgorithm: "Hoặc: R' U' R U' R' U2 R",
+        hint: 'Cross + 1 góc vàng ở BL, góc FL hướng vàng ra Front.',
+        tip: 'Góc vàng ở Back-Left, góc FL hướng vàng ra trước → Anti-sune.',
+        top: [1,1,0, 1,1,1, 0,1,0],
+        sides: { top:[0,0,1], bottom:[1,0,0], left:[0,0,0], right:[0,0,1] }
+      },
+      {
+        id: 'corner-h', type: 'oll', step: 2, stepName: 'OLL ② • Corner Cases',
+        name: 'H Algorithm', subtitle: '0 góc trên đỉnh, 2 cặp đèn pha trái & phải',
+        algorithm: "F (R U R' U')3 F'", altAlgorithm: "Không xoay F: R U R' U R U' R' U R U2 R'",
+        hint: 'Trái và Phải đều có cặp đèn pha (2 vàng cùng hướng sang ngang).',
+        tip: 'Đèn pha sang trái & phải (chữ H) → F + 3 Sexy Move + F\'.',
+        top: [0,1,0, 1,1,1, 0,1,0],
+        sides: { top:[0,0,0], bottom:[0,0,0], left:[1,0,1], right:[1,0,1] }
+      },
+      {
+        id: 'corner-pi', type: 'oll', step: 2, stepName: 'OLL ② • Corner Cases',
+        name: 'Pi', subtitle: '0 góc trên đỉnh, 1 cặp đèn pha bên trái',
+        algorithm: "R U2 (R2' U' R2 U') R2' U2 R", altAlgorithm: "Hoặc: R U2 (R2 U') (R2 U') R2 U2 R",
+        hint: 'Chỉ 1 mặt bên có cặp đèn pha, 2 góc còn lại chĩa trước & sau.',
+        tip: 'Đèn pha duy nhất ở TRÁI, 2 góc phải chĩa trước & sau → chạy Pi.',
+        top: [0,1,0, 1,1,1, 0,1,0],
+        sides: { top:[0,0,1], bottom:[0,0,1], left:[1,0,1], right:[0,0,0] }
+      },
+      {
+        id: 'corner-u', type: 'oll', step: 2, stepName: 'OLL ② • Corner Cases',
+        name: 'Headlights', subtitle: '2 góc sau đã vàng, cặp đèn pha hướng ra trước',
+        algorithm: "R2 D (R' U2 R) D' (R' U2 R')", altAlgorithm: '',
+        hint: '2 góc vàng ở phía sau, 2 góc trước cùng chiếu ra trước như đèn pha ô tô.',
+        tip: '2 góc đã vàng ở sau (Back), cặp đèn pha hướng ra trước → chạy công thức.',
+        top: [1,1,1, 1,1,1, 0,1,0],
+        sides: { top:[0,0,0], bottom:[1,0,1], left:[0,0,0], right:[0,0,0] }
+      },
+      {
+        id: 'corner-t', type: 'oll', step: 2, stepName: 'OLL ② • Corner Cases',
+        name: 'T Algorithm', subtitle: '2 góc vàng bên phải tạo chữ T',
+        algorithm: "(r U R' U') (r' F R F')", altAlgorithm: '',
+        hint: '2 góc vàng kề nhau bên phải tạo chữ T. 2 góc trái chĩa ngược nhau.',
+        tip: 'Chữ T nằm ngang, 2 góc vàng ở bên PHẢI. Dùng r (2 lớp) → trả r\'.',
+        top: [0,1,1, 1,1,1, 0,1,1],
+        sides: { top:[1,0,0], bottom:[1,0,0], left:[0,0,0], right:[0,0,0] }
+      },
+      {
+        id: 'corner-l', type: 'oll', step: 2, stepName: 'OLL ② • Corner Cases',
+        name: 'Kite', subtitle: '2 góc vàng nằm chéo nhau tạo hình cánh diều',
+        algorithm: "F' (r U R' U') (r' F R)", altAlgorithm: '',
+        hint: '2 góc vàng đối chéo. Đặt ở Back-Left & Front-Right, góc FL hướng vàng ra trước.',
+        tip: '2 góc vàng chéo ở BL & FR, góc FL hướng vàng ra trước → chạy Kite.',
+        top: [1,1,0, 1,1,1, 0,1,1],
+        sides: { top:[0,0,0], bottom:[1,0,0], left:[0,0,0], right:[1,0,0] }
+      }
+    ];
+
+    const PLL_CASES = [
+      {
+        id: 'pll-t', type: 'pll', step: 1, stepName: 'PLL ① • Corner Swap',
+        name: 'T-perm', subtitle: '1 mặt solved (bar) + 2 góc kề cần đổi',
+        algorithm: "R U R' U' R' F R2 U' R' U' R U R' F'",
+        altAlgorithm: "Nhóm: (R U R' U' R' F) R2 (U' R' U' R U R' F')",
+        hint: '1 cặp đèn pha ở 1 mặt. Mặt đối diện 2 góc cần hoán đổi.',
+        tip: 'Đặt mặt ĐÃ GIẢI HOÀN TOÀN ở bên TRÁI → chạy T-perm.',
+        sideState: {
+          top:    [FACE.BACK, FACE.FRONT, FACE.FRONT],
+          bottom: [FACE.FRONT, FACE.BACK, FACE.BACK],
+          left:   [FACE.LEFT, FACE.LEFT, FACE.LEFT],
+          right:  [FACE.RIGHT, FACE.RIGHT, FACE.RIGHT]
+        },
+        arrows: [
+          { from: [0,2], to: [2,2], curve: -25 },
+          { from: [2,2], to: [0,2], curve: 25 },
+          { from: [0,1], to: [2,1], curve: -15 },
+          { from: [2,1], to: [0,1], curve: 15 }
+        ]
+      },
+      {
+        id: 'pll-y', type: 'pll', step: 1, stepName: 'PLL ① • Corner Swap',
+        name: 'Y-perm', subtitle: '0 mặt solved, 2 góc chéo + 2 cạnh kề đổi',
+        algorithm: "F R U' R' U' R U R' F' R U R' U' R' F R F'",
+        altAlgorithm: "Nhóm: (F R U' R' U' R U R' F') (R U R' U' R' F R F')",
+        hint: '0 mặt solved. 4 góc đều lộn xộn (2 góc chéo + 2 cạnh kề đổi).',
+        tip: 'Đặt 2 góc chéo cần đổi ở BL và FR, góc FL hướng vàng ra Front → Y-perm.',
+        sideState: {
+          top:    [FACE.FRONT, FACE.LEFT, FACE.BACK],
+          bottom: [FACE.FRONT, FACE.FRONT, FACE.BACK],
+          left:   [FACE.RIGHT, FACE.BACK, FACE.LEFT],
+          right:  [FACE.RIGHT, FACE.RIGHT, FACE.LEFT]
+        },
+        arrows: [
+          { from: [0,0], to: [2,2], curve: 30 },
+          { from: [2,2], to: [0,0], curve: -30 },
+          { from: [0,1], to: [1,0], curve: 15 },
+          { from: [1,0], to: [0,1], curve: -15 }
+        ]
+      },
+      {
+        id: 'pll-ua', type: 'pll', step: 2, stepName: 'PLL ② • 3 Edges',
+        name: 'Ua-perm', subtitle: '3 cạnh xoay ngược chiều kim đồng hồ',
+        algorithm: "M2 U M U2 M' U M2", 
+        altAlgorithm: "R/U: R2 U R U R' U' R' U' R' U R'",
+        hint: '1 mặt đã giải. 3 cạnh còn lại xoay NGƯỢC chiều kim đồng hồ.',
+        tip: 'Mặt đã giải ở phía SAU. 3 cạnh L, F, R xoay ngược chiều → Ua.',
+        sideState: {
+          top:    [FACE.BACK, FACE.BACK, FACE.BACK],
+          bottom: [FACE.FRONT, FACE.LEFT, FACE.FRONT],
+          left:   [FACE.LEFT, FACE.RIGHT, FACE.LEFT],
+          right:  [FACE.RIGHT, FACE.FRONT, FACE.RIGHT]
+        },
+        arrows: [
+          { from: [0,1], to: [1,0], curve: 30 },
+          { from: [1,0], to: [1,2], curve: 30 },
+          { from: [1,2], to: [0,1], curve: -30 }
+        ]
+      },
+      {
+        id: 'pll-ub', type: 'pll', step: 2, stepName: 'PLL ② • 3 Edges',
+        name: 'Ub-perm', subtitle: '3 cạnh xoay cùng chiều kim đồng hồ',
+        algorithm: "M2 U' M U2 M' U' M2",
+        altAlgorithm: "R/U: R U' R U R U R U' R' U' R2",
+        hint: '1 mặt đã giải. 3 cạnh còn lại xoay CÙNG chiều kim đồng hồ.',
+        tip: 'Mặt đã giải ở phía SAU. 3 cạnh L, F, R xoay cùng chiều → Ub.',
+        sideState: {
+          top:    [FACE.BACK, FACE.BACK, FACE.BACK],
+          bottom: [FACE.FRONT, FACE.RIGHT, FACE.FRONT],
+          left:   [FACE.LEFT, FACE.FRONT, FACE.LEFT],
+          right:  [FACE.RIGHT, FACE.LEFT, FACE.RIGHT]
+        },
+        arrows: [
+          { from: [0,1], to: [1,2], curve: -30 },
+          { from: [1,2], to: [1,0], curve: -30 },
+          { from: [1,0], to: [0,1], curve: 30 }
+        ]
+      },
+      {
+        id: 'pll-h', type: 'pll', step: 2, stepName: 'PLL ② • 4 Edges',
+        name: 'H-perm', subtitle: '4 cạnh đối diện hoán đổi chéo (F↔B, L↔R)',
+        algorithm: "M2 U M2 U2 M2 U M2", 
+        altAlgorithm: "Hoặc: M2 U' M2 U2 M2 U' M2",
+        hint: '0 mặt solved. Cạnh đối diện hoán đổi (Trước↔Sau, Trái↔Phải).',
+        tip: 'Mọi mặt đều có 2 cạnh đối diện sai. Hoán đổi F↔B và L↔R cùng lúc → H.',
+        sideState: {
+          top:    [FACE.BACK, FACE.FRONT, FACE.BACK],
+          bottom: [FACE.FRONT, FACE.BACK, FACE.FRONT],
+          left:   [FACE.LEFT, FACE.RIGHT, FACE.LEFT],
+          right:  [FACE.RIGHT, FACE.LEFT, FACE.RIGHT]
+        },
+        arrows: [
+          { from: [0,1], to: [2,1], curve: -25 },
+          { from: [2,1], to: [0,1], curve: 25 },
+          { from: [1,0], to: [1,2], curve: -25 },
+          { from: [1,2], to: [1,0], curve: 25 }
+        ]
+      },
+      {
+        id: 'pll-z', type: 'pll', step: 2, stepName: 'PLL ② • 4 Edges',
+        name: 'Z-perm', subtitle: '4 cạnh kề hoán đổi (F↔L, B↔R)',
+        algorithm: "M' U M2 U M2 U M' U2 M2",
+        altAlgorithm: "Hoặc: M2 U M2 U M' U2 M2 U2 M'",
+        hint: '0 mặt solved. Cạnh kề hoán đổi (Trước↔Trái, Sau↔Phải).',
+        tip: 'Mọi mặt đều sai. Hoán đổi F↔L và B↔R (2 cặp cạnh kề) → Z.',
+        sideState: {
+          top:    [FACE.BACK, FACE.RIGHT, FACE.BACK],
+          bottom: [FACE.FRONT, FACE.LEFT, FACE.FRONT],
+          left:   [FACE.LEFT, FACE.FRONT, FACE.LEFT],
+          right:  [FACE.RIGHT, FACE.BACK, FACE.RIGHT]
+        },
+        arrows: [
+          { from: [0,1], to: [1,2], curve: -20 },
+          { from: [1,2], to: [0,1], curve: 20 },
+          { from: [2,1], to: [1,0], curve: -20 },
+          { from: [1,0], to: [2,1], curve: 20 }
+        ]
+      }
+    ];
+
+    const ALL_CASES = [...OLL_CASES, ...PLL_CASES];
+    const TOTAL = ALL_CASES.length;
+
+    let currentFilter = 'all';
+    let viewMode = 'flashcard';
+    let filteredDeck = [...ALL_CASES];
+    let currentIndex = 0;
+    let isFlipped = false;
+    let showHint = false;
+    let masteredIds = new Set(JSON.parse(localStorage.getItem('ll_mastered_v1') || '[]'));
+    let sessionFlips = 0;
+    let confettiLaunched = false;
+    let isSwiping = false;
+
+    const MOVE_COLORS = {
+      'R': 'text-sky-400', 'r': 'text-sky-300', 'L': 'text-orange-400', 'l': 'text-orange-300',
+      'U': 'text-yellow-400', 'u': 'text-yellow-300', 'D': 'text-red-400', 'd': 'text-red-300',
+      'F': 'text-emerald-400', 'f': 'text-emerald-300', 'B': 'text-purple-400', 'b': 'text-purple-300',
+      'M': 'text-amber-400', 'm': 'text-amber-300'
+    };
+
+    function cellCenter(row, col) { return [36 + col * 49 + 23, 36 + row * 49 + 23]; }
+
+    function drawArrow(from, to, curve = 0, color = '#0EA5E9') {
+      const [x1, y1] = cellCenter(from[0], from[1]);
+      const [x2, y2] = cellCenter(to[0], to[1]);
+      const inset = 16;
+      const dx = x2 - x1, dy = y2 - y1;
+      const len = Math.sqrt(dx*dx + dy*dy) || 1;
+      const ux = dx / len, uy = dy / len;
+      const sx = x1 + ux * inset, sy = y1 + uy * inset;
+      const ex = x2 - ux * inset, ey = y2 - uy * inset;
+      const mx = (sx + ex) / 2, my = (sy + ey) / 2;
+      const px = -uy, py = ux;
+      const cx = mx + px * curve, cy = my + py * curve;
+      const tdx = ex - cx, tdy = ey - cy;
+      const tlen = Math.sqrt(tdx*tdx + tdy*tdy) || 1;
+      const tux = tdx / tlen, tuy = tdy / tlen;
+      const nx = -tuy, ny = tux;
+      const hLen = 8, hW = 4.5;
+      const bx1 = ex - tux * hLen + nx * hW;
+      const by1 = ey - tuy * hLen + ny * hW;
+      const bx2 = ex - tux * hLen - nx * hW;
+      const by2 = ey - tuy * hLen - ny * hW;
+      const pathEx = ex - tux * (hLen * 0.7);
+      const pathEy = ey - tuy * (hLen * 0.7);
+      return `
+        <path d="M ${sx} ${sy} Q ${cx} ${cy} ${pathEx} ${pathEy}" stroke="${color}" stroke-width="2.6" fill="none" stroke-linecap="round" class="sky-glow"/>
+        <polygon points="${ex},${ey} ${bx1},${by1} ${bx2},${by2}" fill="${color}"/>
+      `;
+    }
+
+    function generateOLLSvg(item, isMini = false) {
+      const uid = `oll-${item.id}-${isMini ? 'm' : 'f'}`;
+      const yellowLight = '#FDE047', yellowDark = '#EAB308';
+      const darkTop = '#475569', darkBottom = '#334155';
+      const cellSize = 46, gap = 3, start = 36, sideThickness = 11, sideGap = 5;
+      const parts = [];
+      parts.push(`
+        <defs>
+          <linearGradient id="yg-${uid}" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="${yellowLight}"/>
+            <stop offset="100%" stop-color="${yellowDark}"/>
+          </linearGradient>
+          <linearGradient id="dg-${uid}" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="${darkTop}"/>
+            <stop offset="100%" stop-color="${darkBottom}"/>
+          </linearGradient>
+        </defs>
+        <rect x="16" y="16" width="188" height="188" rx="22" fill="#0F172A" stroke="#1E293B" stroke-width="3"/>
+      `);
+      for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 3; col++) {
+          const idx = row * 3 + col;
+          const isY = item.top[idx] === 1;
+          const x = start + col * (cellSize + gap);
+          const y = start + row * (cellSize + gap);
+          parts.push(`<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" rx="7"
+            fill="url(#${isY ? 'yg' : 'dg'}-${uid})"
+            stroke="${isY ? yellowDark : '#1E293B'}" stroke-width="1.5"
+            ${isY && !isMini ? 'class="yellow-glow"' : ''}/>`);
+        }
+      }
+      for (let i = 0; i < 3; i++) {
+        const pos = start + i * (cellSize + gap);
+        parts.push(`<rect x="${pos + 2}" y="${start - sideGap - sideThickness}" width="${cellSize - 4}" height="${sideThickness}" rx="4" fill="${item.sides.top[i] === 1 ? yellowLight : FACE.INACTIVE}"/>`);
+        const bY = start + 3 * cellSize + 2 * gap + sideGap;
+        parts.push(`<rect x="${pos + 2}" y="${bY}" width="${cellSize - 4}" height="${sideThickness}" rx="4" fill="${item.sides.bottom[i] === 1 ? yellowLight : FACE.INACTIVE}"/>`);
+        parts.push(`<rect x="${start - sideGap - sideThickness}" y="${pos + 2}" width="${sideThickness}" height="${cellSize - 4}" rx="4" fill="${item.sides.left[i] === 1 ? yellowLight : FACE.INACTIVE}"/>`);
+        const rX = start + 3 * cellSize + 2 * gap + sideGap;
+        parts.push(`<rect x="${rX}" y="${pos + 2}" width="${sideThickness}" height="${cellSize - 4}" rx="4" fill="${item.sides.right[i] === 1 ? yellowLight : FACE.INACTIVE}"/>`);
+      }
+      return `<svg viewBox="0 0 220 220" class="w-full h-full overflow-visible" aria-label="Sơ đồ ${item.name}">${parts.join('')}</svg>`;
+    }
+
+    function generatePLLSvg(item, isMini = false) {
+      const uid = `pll-${item.id}-${isMini ? 'm' : 'f'}`;
+      const yellowLight = '#FDE047', yellowDark = '#EAB308';
+      const cellSize = 46, gap = 3, start = 36, sideThickness = 11, sideGap = 5;
+      const parts = [];
+      parts.push(`
+        <defs>
+          <linearGradient id="pyg-${uid}" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="${yellowLight}"/>
+            <stop offset="100%" stop-color="${yellowDark}"/>
+          </linearGradient>
+        </defs>
+        <rect x="16" y="16" width="188" height="188" rx="22" fill="#0F172A" stroke="#1E293B" stroke-width="3"/>
+      `);
+      for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 3; col++) {
+          const x = start + col * (cellSize + gap);
+          const y = start + row * (cellSize + gap);
+          parts.push(`<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" rx="7"
+            fill="url(#pyg-${uid})" stroke="${yellowDark}" stroke-width="1.5"
+            ${!isMini ? 'class="yellow-glow"' : ''}/>`);
+        }
+      }
+      const ss = item.sideState || {};
+      const getC = (key, idx) => (ss[key] && ss[key][idx]) || FACE.INACTIVE;
+      for (let i = 0; i < 3; i++) {
+        const pos = start + i * (cellSize + gap);
+        parts.push(`<rect x="${pos + 2}" y="${start - sideGap - sideThickness}" width="${cellSize - 4}" height="${sideThickness}" rx="4" fill="${getC('top', i)}" stroke="#0F172A" stroke-width="0.8"/>`);
+        const bY = start + 3 * cellSize + 2 * gap + sideGap;
+        parts.push(`<rect x="${pos + 2}" y="${bY}" width="${cellSize - 4}" height="${sideThickness}" rx="4" fill="${getC('bottom', i)}" stroke="#0F172A" stroke-width="0.8"/>`);
+        parts.push(`<rect x="${start - sideGap - sideThickness}" y="${pos + 2}" width="${sideThickness}" height="${cellSize - 4}" rx="4" fill="${getC('left', i)}" stroke="#0F172A" stroke-width="0.8"/>`);
+        const rX = start + 3 * cellSize + 2 * gap + sideGap;
+        parts.push(`<rect x="${rX}" y="${pos + 2}" width="${sideThickness}" height="${cellSize - 4}" rx="4" fill="${getC('right', i)}" stroke="#0F172A" stroke-width="0.8"/>`);
+      }
+      if (item.arrows) {
+        item.arrows.forEach(a => {
+          parts.push(drawArrow(a.from, a.to, a.curve, '#0EA5E9'));
+        });
+      }
+      return `<svg viewBox="0 0 220 220" class="w-full h-full overflow-visible" aria-label="Sơ đồ ${item.name}">${parts.join('')}</svg>`;
+    }
+
+    function generateCardSvg(item, isMini = false) {
+      return item.type === 'pll' ? generatePLLSvg(item, isMini) : generateOLLSvg(item, isMini);
+    }
+
+    function formatAlgorithmHTML(algo) {
+      let html = algo.replace(/([RLUDFBrludfbM])(['2]?)/g, (m, letter, suffix) => {
+        const cls = MOVE_COLORS[letter] || 'text-yellow-300';
+        return `<span class="${cls}">${letter}${suffix}</span>`;
+      });
+      return html.replace(/\(/g, '<span class="text-slate-600 font-normal">(</span>')
+                 .replace(/\)/g, '<span class="text-slate-600 font-normal">)</span>');
+    }
+
+    function saveProgress() {
+      localStorage.setItem('ll_mastered_v1', JSON.stringify([...masteredIds]));
+      updateProgressUI();
+    }
+
+    function updateProgressUI() {
+      const mastered = masteredIds.size;
+      document.getElementById('masteredText').textContent = `${mastered}/${TOTAL}`;
+      document.getElementById('masteredBar').style.width = `${(mastered / TOTAL) * 100}%`;
+      document.getElementById('unlearnedCount').textContent = TOTAL - mastered;
+      if (mastered === TOTAL && !confettiLaunched) {
+        confettiLaunched = true;
+        launchConfetti();
+        showToast('🎉 Hoàn hảo! Bạn đã thuộc toàn bộ 16 công thức!', 4000);
+      }
+    }
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        const active = btn.dataset.filter === filter;
+        const isPll = filter.startsWith('pll');
+        let activeCls = 'bg-slate-700 text-white ring-1 ring-yellow-400/50';
+        if (isPll && active) activeCls = 'bg-slate-700 text-white ring-1 ring-sky-400/50';
+        btn.className = 'filter-btn px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition ' +
+          (active ? activeCls : 'bg-slate-800/70 text-slate-400 hover:text-white');
+      });
+      applyFilterAndRender();
+    }
+
+    function applyFilterAndRender() {
+      if (currentFilter === 'all') filteredDeck = [...ALL_CASES];
+      else if (currentFilter === 'oll1') filteredDeck = OLL_CASES.filter(c => c.step === 1);
+      else if (currentFilter === 'oll2') filteredDeck = OLL_CASES.filter(c => c.step === 2);
+      else if (currentFilter === 'pll1') filteredDeck = PLL_CASES.filter(c => c.step === 1);
+      else if (currentFilter === 'pll2') filteredDeck = PLL_CASES.filter(c => c.step === 2);
+      else if (currentFilter === 'unlearned') filteredDeck = ALL_CASES.filter(c => !masteredIds.has(c.id));
+      currentIndex = 0; isFlipped = false; showHint = false;
+      renderFlashcard();
+      renderCheatsheet();
+    }
+
+    function renderFlashcard() {
+      const wrapper = document.getElementById('cardWrapper');
+      const empty = document.getElementById('emptyFilterState');
+      if (filteredDeck.length === 0) {
+        wrapper.classList.add('hidden');
+        empty.classList.remove('hidden');
+        const allMastered = masteredIds.size === TOTAL;
+        if (allMastered) {
+          document.getElementById('emptyTitle').textContent = '🎉 Hoàn hảo! Thuộc toàn bộ 16 công thức!';
+          document.getElementById('emptyDesc').textContent = 'Chuyển sang xem tất cả để luyện phản xạ.';
+        } else {
+          document.getElementById('emptyTitle').textContent = 'Tuyệt vời! Nhóm này đã xong';
+          document.getElementById('emptyDesc').textContent = 'Chuyển sang xem tất cả để luyện phản xạ.';
+        }
+        return;
+      }
+      wrapper.classList.remove('hidden');
+      empty.classList.add('hidden');
+      if (currentIndex >= filteredDeck.length) currentIndex = 0;
+      const item = filteredDeck[currentIndex];
+      const isMastered = masteredIds.has(item.id);
+      const isPll = item.type === 'pll';
+
+      const inner = document.getElementById('cardInner');
+      inner.classList.toggle('rotate-y-180', isFlipped);
+
+      document.getElementById('cardCounter').textContent = `Thẻ ${currentIndex + 1} / ${filteredDeck.length}`;
+      document.getElementById('frontStepBadge').textContent = item.stepName;
+
+      const stepBadge = document.getElementById('frontStepBadge');
+      if (isPll) stepBadge.className = 'px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-sky-400/15 text-sky-300 border border-sky-400/30';
+      else stepBadge.className = 'px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-yellow-400/15 text-yellow-400 border border-yellow-400/30';
+
+      const badge = document.getElementById('frontStatusBadge');
+      if (isMastered) {
+        badge.textContent = '✓ Đã thuộc';
+        badge.className = 'px-2 py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+      } else {
+        badge.textContent = 'Cần luyện';
+        badge.className = 'px-2 py-1 rounded-full text-[10px] sm:text-[11px] font-semibold bg-slate-800 text-slate-400';
+      }
+
+      document.getElementById('backFace').className = 'absolute inset-0 backface-hidden rotate-y-180 card-surface border-2 rounded-3xl p-4 sm:p-6 flex flex-col justify-between shadow-2xl ' + (isPll ? 'border-sky-400/40' : 'border-yellow-400/40');
+      document.getElementById('frontSvgContainer').innerHTML = generateCardSvg(item, false);
+
+      const hintBox = document.getElementById('hintBox');
+      const hintBtnText = document.getElementById('hintBtnText');
+      if (showHint) {
+        hintBox.textContent = item.hint;
+        hintBox.classList.remove('hidden');
+        hintBtnText.textContent = 'Ẩn gợi ý';
+      } else {
+        hintBox.classList.add('hidden');
+        hintBtnText.textContent = 'Gợi ý';
+      }
+
+      const backLabel = document.getElementById('backStepLabel');
+      backLabel.textContent = item.stepName;
+      backLabel.className = isPll ? 'text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-sky-400' : 'text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-yellow-400';
+
+      document.getElementById('backCaseName').textContent = item.name;
+      document.getElementById('backCaseSub').textContent = item.subtitle;
+      document.getElementById('backMiniSvg').innerHTML = generateCardSvg(item, true);
+      document.getElementById('backAlgorithm').innerHTML = formatAlgorithmHTML(item.algorithm);
+      document.getElementById('backAltAlgo').textContent = item.altAlgorithm || '';
+      document.getElementById('backTip').textContent = item.tip;
+
+      const btn = document.getElementById('btnToggleMastered');
+      const lbl = document.getElementById('btnMasteredLabel');
+      if (isMastered) {
+        btn.className = 'flex items-center justify-center gap-1 py-2.5 px-2 rounded-xl bg-emerald-500 text-slate-950 text-xs sm:text-sm font-extrabold transition active:scale-95 shadow-lg shadow-emerald-500/20';
+        lbl.textContent = 'Đã thuộc ✓';
+      } else {
+        btn.className = 'flex items-center justify-center gap-1 py-2.5 px-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-xs sm:text-sm font-bold text-emerald-300 transition active:scale-95';
+        lbl.textContent = 'Thuộc';
+      }
+    }
+
+    function handleCardClick() { if (!isSwiping) flipCard(); }
+    function flipCard() { isFlipped = !isFlipped; document.getElementById('cardInner').classList.toggle('rotate-y-180', isFlipped); if (isFlipped) { sessionFlips++; document.getElementById('sessionFlips').textContent = sessionFlips; } }
+    function toggleHint() { showHint = !showHint; renderFlashcard(); }
+    function nextCard() { if (!filteredDeck.length) return; isFlipped = false; showHint = false; currentIndex = (currentIndex + 1) % filteredDeck.length; renderFlashcard(); }
+    function prevCard() { if (!filteredDeck.length) return; isFlipped = false; showHint = false; currentIndex = (currentIndex - 1 + filteredDeck.length) % filteredDeck.length; renderFlashcard(); }
+    
+    function shuffleCards() {
+      if (filteredDeck.length <= 1) return;
+      for (let i = filteredDeck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [filteredDeck[i], filteredDeck[j]] = [filteredDeck[j], filteredDeck[i]]; }
+      currentIndex = 0; isFlipped = false; showHint = false; renderFlashcard(); showToast('🔀 Đã xáo trộn!');
+    }
+
+    function toggleMasteredCurrent() {
+      if (!filteredDeck.length) return;
+      const item = filteredDeck[currentIndex];
+      const wasMastered = masteredIds.has(item.id);
+      const btn = document.getElementById('btnToggleMastered');
+      btn.classList.add('tap-anim'); setTimeout(() => btn.classList.remove('tap-anim'), 250);
+      if (wasMastered) masteredIds.delete(item.id); else masteredIds.add(item.id);
+      saveProgress();
+      if (currentFilter === 'unlearned') {
+        filteredDeck = ALL_CASES.filter(c => !masteredIds.has(c.id));
+        if (currentIndex >= filteredDeck.length) currentIndex = Math.max(0, filteredDeck.length - 1);
+        isFlipped = false; showHint = false;
+      }
+      renderFlashcard(); renderCheatsheet();
+      if (!wasMastered) showToast('✓ Đã đánh dấu thuộc!');
+    }
+
+    function rateCard(remembered) {
+      if (!filteredDeck.length) return;
+      const item = filteredDeck[currentIndex];
+      if (remembered && !masteredIds.has(item.id)) { masteredIds.add(item.id); saveProgress(); showToast('✓ Tuyệt vời!'); }
+      else if (!remembered) showToast('↻ Sẽ gặp lại!');
+      renderCheatsheet(); nextCard();
+    }
+
+    function toggleMasteredById(id) {
+      if (masteredIds.has(id)) masteredIds.delete(id); else masteredIds.add(id);
+      saveProgress(); renderCheatsheet(); renderFlashcard();
+    }
+
+    function resetProgress() {
+      if (!confirm('Bạn có chắc muốn đặt lại toàn bộ tiến độ học?')) return;
+      masteredIds.clear(); confettiLaunched = false; saveProgress(); applyFilterAndRender(); showToast('Đã đặt lại.');
+    }
+
+    function copyAlgorithm() {
+      if (!filteredDeck.length) return;
+      const text = filteredDeck[currentIndex].algorithm;
+      const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'absolute'; ta.style.left = '-9999px';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch(e) {}
+      document.body.removeChild(ta);
+      showToast(`📋 ${text.length > 30 ? text.slice(0, 30) + '…' : text}`);
+    }
+
+    function showToast(msg, duration = 2200) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.remove('opacity-0'); t.classList.add('opacity-100');
+      clearTimeout(window._toast);
+      window._toast = setTimeout(() => { t.classList.remove('opacity-100'); t.classList.add('opacity-0'); }, duration);
+    }
+
+    function launchConfetti() {
+      const container = document.getElementById('confettiContainer');
+      const colors = ['#FACC15', '#22C55E', '#3B82F6', '#EF4444', '#A855F7', '#EC4899', '#0EA5E9'];
+      for (let i = 0; i < 120; i++) {
+        const el = document.createElement('div');
+        el.className = 'confetti-piece'; el.style.left = Math.random() * 100 + 'vw';
+        el.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        el.style.animationDelay = (Math.random() * 0.6) + 's'; el.style.animationDuration = (2.5 + Math.random() * 2) + 's';
+        el.style.transform = `rotate(${Math.random() * 360}deg)`;
+        container.appendChild(el); setTimeout(() => el.remove(), 5000);
+      }
+    }
+
+    function setViewMode(mode) {
+      viewMode = mode;
+      const fv = document.getElementById('flashcardView'), cv = document.getElementById('cheatsheetView');
+      const bf = document.getElementById('btnModeFlashcard'), bc = document.getElementById('btnModeCheatsheet');
+      if (mode === 'flashcard') {
+        fv.classList.remove('hidden'); cv.classList.add('hidden');
+        bf.className = 'px-2.5 py-1.5 rounded-md text-[11px] sm:text-xs font-semibold transition-all bg-yellow-400 text-slate-950 shadow';
+        bc.className = 'px-2.5 py-1.5 rounded-md text-[11px] sm:text-xs font-semibold transition-all text-slate-300 hover:text-white';
+      } else {
+        fv.classList.add('hidden'); cv.classList.remove('hidden'); cv.classList.add('flex');
+        bc.className = 'px-2.5 py-1.5 rounded-md text-[11px] sm:text-xs font-semibold transition-all bg-sky-400 text-slate-950 shadow';
+        bf.className = 'px-2.5 py-1.5 rounded-md text-[11px] sm:text-xs font-semibold transition-all text-slate-300 hover:text-white';
+        renderCheatsheet();
+      }
+    }
+
+    function renderCheatsheet() {
+      const build = (item) => {
+        const m = masteredIds.has(item.id);
+        const isPll = item.type === 'pll';
+        return `
+          <div class="bg-slate-900/90 border ${m ? 'border-emerald-500/40' : 'border-slate-800'} rounded-2xl p-3 flex flex-col gap-2.5 hover:border-slate-700 transition">
+            <div class="flex items-center gap-2.5">
+              <div class="w-16 h-16 sm:w-20 sm:h-20 shrink-0">${generateCardSvg(item, true)}</div>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center justify-between gap-2">
+                  <h3 class="text-sm font-bold text-white truncate">${item.name}</h3>
+                  <button onclick="toggleMasteredById('${item.id}')" title="Đánh dấu đã thuộc" class="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold transition shrink-0 ${m ? 'bg-emerald-500 text-slate-950 check-pop' : 'bg-slate-800 text-slate-400 hover:text-white'}">✓</button>
+                </div>
+                <p class="text-[11px] text-slate-400 line-clamp-2 mt-0.5 leading-snug">${item.subtitle}</p>
+              </div>
+            </div>
+            <div class="bg-slate-950 border ${isPll ? 'border-sky-900/50' : 'border-slate-800/90'} rounded-xl px-2.5 py-2 font-mono text-[11px] sm:text-sm font-bold text-center leading-relaxed break-words">${formatAlgorithmHTML(item.algorithm)}</div>
+            <p class="text-[10px] sm:text-[11px] text-slate-400 leading-relaxed"><span class="text-emerald-400 font-semibold">Mẹo:</span> ${item.tip}</p>
+          </div>
+        `;
+      };
+      document.getElementById('gridOll1').innerHTML = OLL_CASES.filter(c => c.step === 1).map(build).join('');
+      document.getElementById('gridOll2').innerHTML = OLL_CASES.filter(c => c.step === 2).map(build).join('');
+      document.getElementById('gridPll1').innerHTML = PLL_CASES.filter(c => c.step === 1).map(build).join('');
+      document.getElementById('gridPll2').innerHTML = PLL_CASES.filter(c => c.step === 2).map(build).join('');
+    }
+
+    function openHelp() { const m = document.getElementById('helpModal'); m.classList.remove('hidden'); m.classList.add('flex'); }
+    function closeHelp() { const m = document.getElementById('helpModal'); m.classList.add('hidden'); m.classList.remove('flex'); }
+
+    (function setupSwipe() {
+      const zone = document.getElementById('cardTouchZone');
+      if (!zone) return;
+      let startX = 0, startY = 0, moved = false;
+      zone.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; startY = e.touches[0].clientY; moved = false; }, { passive: true });
+      zone.addEventListener('touchmove', (e) => { const dx = Math.abs(e.touches[0].clientX - startX), dy = Math.abs(e.touches[0].clientY - startY); if (dx > 10 || dy > 10) moved = true; }, { passive: true });
+      zone.addEventListener('touchend', (e) => {
+        if (!moved) return;
+        const dx = e.changedTouches[0].clientX - startX, dy = e.changedTouches[0].clientY - startY;
+        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 55) {
+          isSwiping = true;
+          if (dx > 0) prevCard(); else nextCard();
+          setTimeout(() => { isSwiping = false; }, 350);
+        }
+      }, { passive: true });
+    })();
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { closeHelp(); return; }
+      if (e.target.matches('input, textarea')) return;
+      if (e.code === 'Space' && e.target.closest('button')) return;
+      if (e.key === '?') { e.preventDefault(); openHelp(); return; }
+      if (viewMode !== 'flashcard') return;
+      switch (e.code) {
+        case 'Space': e.preventDefault(); flipCard(); break;
+        case 'ArrowRight': nextCard(); break;
+        case 'ArrowLeft': prevCard(); break;
+        case 'KeyH': toggleHint(); break;
+        case 'KeyM': toggleMasteredCurrent(); break;
+        case 'KeyS': shuffleCards(); break;
+        case 'KeyC': copyAlgorithm(); break;
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      updateProgressUI(); setFilter('all'); renderFlashcard(); renderCheatsheet();
+    });
+  </script>
+</body>
+</html>
