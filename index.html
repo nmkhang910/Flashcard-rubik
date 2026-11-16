@@ -4,18 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#0f172a" />
-  <title>2-Look OLL + PLL Flashcards</title>
+  <title>Rubik Algorithms - Ultimate Beginner</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet" />
-
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
-          fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] }
+          fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+          colors: {
+            brand: { DEFAULT: '#FACC15', dark: '#EAB308' }
+          }
         }
       }
     };
@@ -23,162 +23,308 @@
 
   <style>
     * { -webkit-tap-highlight-color: transparent; }
-    button, [role="button"] { touch-action: manipulation; }
-
     .perspective-1000 { perspective: 1200px; }
-    .transform-style-3d { transform-style: preserve-3d; transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1); }
+    .transform-style-3d { transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
     .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
     .rotate-y-180 { transform: rotateY(180deg); }
-
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    body { background: #0f172a; background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 100%); background-attachment: fixed; }
+    ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
-    ::-webkit-scrollbar-thumb:hover { background: #475569; }
-
-    .yellow-glow { filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.35)); }
-    .sky-glow { filter: drop-shadow(0 0 5px rgba(14, 165, 233, 0.4)); }
-
-    body {
-      background-image:
-        radial-gradient(circle at 15% 10%, rgba(250, 204, 21, 0.06) 0%, transparent 40%),
-        radial-gradient(circle at 85% 90%, rgba(14, 165, 233, 0.06) 0%, transparent 40%),
-        radial-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px);
-      background-size: 100% 100%, 100% 100%, 24px 24px;
-      background-attachment: fixed;
-    }
-
-    .confetti-piece {
-      position: fixed; top: -20px; width: 9px; height: 13px; border-radius: 2px;
-      z-index: 9999; pointer-events: none; animation: confetti-fall linear forwards;
-    }
-    @keyframes confetti-fall {
-      0% { opacity: 1; transform: translateY(0) rotate(0deg); }
-      100% { opacity: 0; transform: translateY(110vh) rotate(720deg); }
-    }
-    @keyframes tap-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(0.94); } }
-    .tap-anim { animation: tap-pulse 0.22s ease; }
-    @keyframes check-pop {
-      0% { transform: scale(0) rotate(-45deg); opacity: 0; }
-      60% { transform: scale(1.25); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-    .check-pop { animation: check-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
-    @keyframes modal-in { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
-    .modal-in { animation: modal-in 0.2s ease; }
-
-    button:focus-visible, a:focus-visible { outline: 2px solid #FACC15; outline-offset: 2px; }
-    .card-surface { background: linear-gradient(140deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%); }
-
-    .filter-scroll {
-      display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px;
-      scrollbar-width: none; -webkit-overflow-scrolling: touch;
-    }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    
+    .glow-yellow { filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.4)); }
+    .glow-blue { filter: drop-shadow(0 0 8px rgba(14, 165, 233, 0.4)); }
+    
     .filter-scroll::-webkit-scrollbar { display: none; }
-    @media (min-width: 768px) {
-      .filter-scroll { flex-wrap: wrap; overflow-x: visible; padding-bottom: 0; }
-    }
-    .filter-scroll > button { flex-shrink: 0; white-space: nowrap; }
-
-    .card-touch-zone { touch-action: pan-y; }
+    .filter-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    @keyframes pulse-ring { 0% { transform: scale(0.95); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 0.4; } 100% { transform: scale(0.95); opacity: 0.8; } }
+    .animate-ring { animation: pulse-ring 2s infinite; }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-[100dvh] flex flex-col font-sans selection:bg-yellow-400 selection:text-slate-950">
+<body class="text-slate-200 min-h-screen font-sans selection:bg-brand selection:text-slate-900">
 
   <!-- HEADER -->
-  <header class="border-b border-slate-800/80 bg-slate-900/70 backdrop-blur-md sticky top-0 z-30">
-    <div class="max-w-5xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2">
-      <div class="flex items-center gap-2.5 min-w-0">
-        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-800 border border-slate-700 p-1.5 grid grid-cols-3 gap-0.5 shadow-inner shrink-0">
-          <span class="bg-slate-600 rounded-[2px]"></span>
-          <span class="bg-yellow-400 rounded-[2px]"></span>
-          <span class="bg-slate-600 rounded-[2px]"></span>
-          <span class="bg-yellow-400 rounded-[2px]"></span>
-          <span class="bg-yellow-400 rounded-[2px]"></span>
-          <span class="bg-yellow-400 rounded-[2px]"></span>
-          <span class="bg-yellow-400 rounded-[2px]"></span>
-          <span class="bg-yellow-400 rounded-[2px]"></span>
-          <span class="bg-slate-600 rounded-[2px]"></span>
+  <header class="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-lg border-b border-slate-800">
+    <div class="max-w-4xl mx-auto px-3 py-3 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 grid grid-cols-2 gap-0.5 p-1">
+          <div class="bg-brand rounded-sm"></div><div class="bg-slate-600 rounded-sm"></div>
+          <div class="bg-slate-600 rounded-sm"></div><div class="bg-brand rounded-sm"></div>
         </div>
-        <div class="min-w-0">
-          <h1 class="text-sm sm:text-lg font-extrabold tracking-tight text-white flex items-baseline gap-1.5">
-            <span>2-Look</span>
-            <span class="text-yellow-400">OLL</span>
-            <span class="text-sky-400">+PLL</span>
-          </h1>
-          <p class="text-[10px] sm:text-xs text-slate-400 hidden xs:block truncate">16 công thức • Mobile optimized</p>
+        <div>
+          <h1 class="text-sm sm:text-base font-extrabold text-white tracking-tight">Ultimate Rubik</h1>
+          <p class="text-[10px] text-brand font-semibold uppercase tracking-wider">2-Look OLL & PLL</p>
         </div>
       </div>
-
-      <div class="flex items-center gap-1.5 shrink-0">
-        <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-slate-800/60 rounded-lg border border-slate-700/60">
-          <svg class="w-3.5 h-3.5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-          </svg>
-          <span id="sessionFlips" class="text-xs font-bold text-yellow-400 font-mono">0</span>
-        </div>
-
-        <button onclick="openHelp()" title="Trợ giúp (?)" class="w-9 h-9 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700/70 flex items-center justify-center text-slate-300 hover:text-white transition active:scale-95">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
-        </button>
-
-        <div class="flex items-center bg-slate-800/90 p-0.5 rounded-lg border border-slate-700/70">
-          <button id="btnModeFlashcard" onclick="setViewMode('flashcard')" class="px-2.5 py-1.5 rounded-md text-[11px] sm:text-xs font-semibold transition-all bg-yellow-400 text-slate-950 shadow">
-            Thẻ
-          </button>
-          <button id="btnModeCheatsheet" onclick="setViewMode('cheatsheet')" class="px-2.5 py-1.5 rounded-md text-[11px] sm:text-xs font-semibold transition-all text-slate-300 hover:text-white">
-            Bảng
-          </button>
-        </div>
+      
+      <div class="flex items-center gap-2 bg-slate-800 rounded-xl p-1 border border-slate-700">
+        <button id="btnModeFlashcard" onclick="setViewMode('flashcard')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-brand text-slate-900 shadow">Thẻ</button>
+        <button id="btnModeCheatsheet" onclick="setViewMode('cheatsheet')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white">Bảng</button>
       </div>
     </div>
   </header>
 
-  <!-- MAIN -->
-  <main class="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-4 py-3 sm:py-5 flex flex-col gap-3 sm:gap-5">
+  <main class="max-w-4xl mx-auto px-3 py-4 flex flex-col gap-4">
 
-    <!-- FILTER + PROGRESS -->
-    <section class="flex flex-col gap-2.5 bg-slate-900/60 border border-slate-800 p-2.5 sm:p-3 rounded-2xl">
-      <div class="filter-scroll" id="filterButtons">
-        <button onclick="setFilter('all')" data-filter="all" class="filter-btn px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition">
-          Tất cả (16)
-        </button>
-        <button onclick="setFilter('oll1')" data-filter="oll1" class="filter-btn px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition">
-          OLL ① Edges (3)
-        </button>
-        <button onclick="setFilter('oll2')" data-filter="oll2" class="filter-btn px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition">
-          OLL ② Corners (7)
-        </button>
-        <button onclick="setFilter('pll1')" data-filter="pll1" class="filter-btn px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition">
-          PLL ① Corner Swap (2)
-        </button>
-        <button onclick="setFilter('pll2')" data-filter="pll2" class="filter-btn px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition">
-          PLL ② Edges (4)
-        </button>
-        <button onclick="setFilter('unlearned')" data-filter="unlearned" class="filter-btn px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition">
-          Cần ôn (<span id="unlearnedCount">16</span>)
-        </button>
+    <!-- FILTERS & PROGRESS -->
+    <section class="bg-slate-800/50 border border-slate-700/50 p-2 sm:p-3 rounded-2xl flex flex-col gap-3">
+      <div class="flex overflow-x-auto gap-2 filter-scroll pb-1" id="filterButtons">
+        <button onclick="setFilter('all')" data-filter="all" class="filter-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">Tất cả</button>
+        <button onclick="setFilter('oll1')" data-filter="oll1" class="filter-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">OLL ① (Dấu thập)</button>
+        <button onclick="setFilter('oll2')" data-filter="oll2" class="filter-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">OLL ② (Góc)</button>
+        <button onclick="setFilter('pll1')" data-filter="pll1" class="filter-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">PLL ① (Góc)</button>
+        <button onclick="setFilter('pll2')" data-filter="pll2" class="filter-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">PLL ② (Cạnh)</button>
       </div>
-
-      <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-800/60">
-        <div class="flex items-center gap-2 flex-1">
-          <div class="text-[11px] sm:text-xs text-slate-400 font-medium whitespace-nowrap">
-            Đã thuộc: <span id="masteredText" class="text-emerald-400 font-bold font-mono">0/16</span>
-          </div>
-          <div class="flex-1 max-w-[140px] h-2 bg-slate-800 rounded-full overflow-hidden">
-            <div id="masteredBar" class="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all duration-500 ease-out" style="width: 0%"></div>
-          </div>
+      
+      <div class="flex items-center gap-3 px-1">
+        <div class="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+          <div id="masteredBar" class="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all duration-500" style="width: 0%"></div>
         </div>
-        <button onclick="resetProgress()" class="text-[11px] text-slate-500 hover:text-red-400 underline transition">Đặt lại</button>
+        <span class="text-xs font-bold text-emerald-400 font-mono" id="masteredText">0/16</span>
       </div>
     </section>
 
-    <!-- FLASHCARD VIEW -->
-    <section id="flashcardView" class="flex-1 flex flex-col items-center justify-center gap-3">
-      <div id="emptyFilterState" class="hidden w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 text-center my-4">
-        <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-2xl">✓</div>
+    <!-- FLASHCARD AREA -->
+    <section id="flashcardView" class="flex flex-col items-center">
+      
+      <div id="emptyFilterState" class="hidden w-full text-center py-12 bg-slate-800/30 rounded-3xl border border-slate-700/50">
+        <div class="text-4xl mb-3">🎉</div>
+        <h3 class="text-lg font-bold text-white mb-1">Đã thuộc hết nhóm này!</h3>
+        <p class="text-sm text-slate-400 mb-5">Chuyển sang bảng tổng hợp để ôn luyện phản xạ nhé.</p>
+        <button onclick="setFilter('all')" class="px-5 py-2.5 rounded-xl bg-brand text-slate-900 font-bold text-sm shadow-lg shadow-brand/20">Xem tất cả</button>
+      </div>
+
+      <div id="cardWrapper" class="w-full max-w-lg">
+        <div class="flex justify-between items-center mb-2 px-1">
+          <span id="cardCounter" class="text-xs font-bold text-slate-400 uppercase tracking-widest">Thẻ 1 / 16</span>
+          <button onclick="shuffleCards()" class="text-xs font-semibold text-brand hover:text-yellow-300 flex items-center gap-1 bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Xáo trộn
+          </button>
+        </div>
+
+        <!-- CARD 3D -->
+        <div class="perspective-1000 w-full h-[460px] sm:h-[500px] cursor-pointer" onclick="flipCard()">
+          <div id="cardInner" class="relative w-full h-full transform-style-3d">
+            
+            <!-- MẶT TRƯỚC (Nhận diện) -->
+            <div class="absolute inset-0 backface-hidden bg-slate-800 border border-slate-700 rounded-[2rem] p-5 flex flex-col justify-between shadow-2xl">
+              <div class="flex justify-between items-start">
+                <span id="frontStepBadge" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900/50 border border-slate-700"></span>
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0V11"/></svg>
+                  Nhấn để lật
+                </span>
+              </div>
+
+              <div class="flex-1 flex flex-col items-center justify-center relative">
+                <!-- Vòng tròn hướng dẫn setup -->
+                <div id="setupIndicator" class="absolute top-0 w-full flex justify-center -mt-2"></div>
+                <div id="frontSvgContainer" class="w-52 h-52 sm:w-60 sm:h-60"></div>
+              </div>
+
+              <div class="bg-slate-900/60 rounded-xl p-3 text-center border border-slate-700/50">
+                <p id="frontHintText" class="text-sm text-slate-300 font-medium leading-relaxed"></p>
+              </div>
+            </div>
+
+            <!-- MẶT SAU (Công thức & Hướng dẫn) -->
+            <div id="backFace" class="absolute inset-0 backface-hidden rotate-y-180 bg-slate-800 border-2 rounded-[2rem] p-5 flex flex-col justify-between shadow-2xl">
+              <div class="flex items-start justify-between border-b border-slate-700/50 pb-3">
+                <div>
+                  <span id="backStepLabel" class="text-[10px] font-extrabold uppercase tracking-wider text-brand"></span>
+                  <h2 id="backCaseName" class="text-2xl font-black text-white mt-1"></h2>
+                </div>
+                <div id="backMiniSvg" class="w-14 h-14 bg-slate-900 rounded-xl border border-slate-700 p-1"></div>
+              </div>
+
+              <!-- Công thức -->
+              <div class="my-auto py-2">
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex justify-between">
+                  <span>Algorithm</span>
+                  <button onclick="event.stopPropagation(); copyAlgorithm()" class="text-brand hover:text-yellow-300">Copy 📋</button>
+                </div>
+                <div id="backAlgorithm" class="bg-slate-900 border border-slate-700 rounded-2xl p-4 text-center font-mono text-xl font-bold leading-relaxed break-words shadow-inner"></div>
+                <div id="backAltAlgo" class="text-center text-xs text-slate-500 mt-2"></div>
+              </div>
+
+              <!-- Hướng dẫn Setup (Cực kỳ quan trọng cho người mới) -->
+              <div class="bg-brand/10 border border-brand/30 rounded-2xl p-4">
+                <div class="flex items-center gap-2 mb-1.5">
+                  <span class="text-brand text-lg">🎯</span>
+                  <h4 class="text-xs font-bold text-brand uppercase tracking-wider">Cách cầm khối (Setup)</h4>
+                </div>
+                <p id="backSetupText" class="text-sm text-slate-200 font-medium leading-relaxed"></p>
+              </div>
+
+              <!-- Nút đánh giá -->
+              <div class="grid grid-cols-2 gap-2 mt-3">
+                <button onclick="event.stopPropagation(); rateCard(false)" class="py-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-xs font-bold text-slate-200 transition active:scale-95">Cần ôn lại</button>
+                <button onclick="event.stopPropagation(); rateCard(true)" class="py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-900 text-xs font-bold transition active:scale-95 shadow-lg shadow-emerald-500/20">Đã thuộc ✓</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ĐIỀU KHIỂN -->
+        <div class="mt-4 flex gap-2">
+          <button onclick="prevCard()" class="flex-1 py-3 rounded-xl bg-slate-800 border border-slate-700 text-sm font-bold text-slate-300 active:scale-95">Trước</button>
+          <button onclick="nextCard()" class="flex-[2] py-3 rounded-xl bg-brand text-slate-900 text-sm font-black active:scale-95 shadow-lg shadow-brand/20">Tiếp theo</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHEATSHEET AREA -->
+    <section id="cheatsheetView" class="hidden flex-col gap-6 pb-10">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="cheatsheetGrid"></div>
+    </section>
+
+  </main>
+
+  <!-- TOAST -->
+  <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-600 text-white text-sm font-bold px-5 py-2.5 rounded-full shadow-2xl opacity-0 transition-opacity duration-300 pointer-events-none z-50"></div>
+
+  <script>
+    // Màu mặt bên (Chuẩn quốc tế)
+    const FACE = {
+      FRONT: '#22C55E', // Xanh lá
+      BACK:  '#3B82F6', // Xanh dương
+      LEFT:  '#F97316', // Cam
+      RIGHT: '#EF4444', // Đỏ
+      INACTIVE: '#1E293B'
+    };
+
+    const DATA = [
+      // ================= OLL 1 =================
+      {
+        id: 'oll-line', type: 'oll', step: 'OLL ①', filter: 'oll1',
+        name: 'Line', algo: "F (R U R' U') F'",
+        hint: 'Tìm thanh ngang màu vàng (2 cạnh đối diện).',
+        setup: 'Xoay U để thanh ngang nằm song song với bàn (từ Trái sang Phải).',
+        top: [0,0,0, 1,1,1, 0,0,0],
+        sides: { top:[0,1,0], bottom:[0,1,0], left:[0,0,0], right:[0,0,0] }
+      },
+      {
+        id: 'oll-l', type: 'oll', step: 'OLL ①', filter: 'oll1',
+        name: 'L-Shape', algo: "f (R U R' U') f'", alt: "Hoặc: F U R U' R' F'",
+        hint: 'Tìm 2 cạnh vàng tạo thành góc vuông (chữ L).',
+        setup: 'Xoay U để 2 cạnh vàng nằm ở hướng 6 giờ (mặt Trước) và 3 giờ (mặt Phải).',
+        top: [0,0,0, 0,1,1, 0,1,0],
+        sides: { top:[0,1,0], bottom:[0,0,0], left:[0,1,0], right:[0,0,0] }
+      },
+      {
+        id: 'oll-dot', type: 'oll', step: 'OLL ①', filter: 'oll1',
+        name: 'Dot', algo: "F (R U R' U') F' f (R U R' U') f'", alt: "Làm Line -> Ra chữ L -> Làm L-Shape",
+        hint: 'Chỉ có tâm vàng, không có cạnh nào hướng lên.',
+        setup: 'Cầm tùy ý. Thực hiện công thức Line, khối sẽ ra chữ L. Đừng xoay U, làm tiếp công thức L-Shape.',
+        top: [0,0,0, 0,1,0, 0,0,0],
+        sides: { top:[0,1,0], bottom:[0,1,0], left:[0,1,0], right:[0,1,0] }
+      },
+      // ================= OLL 2 =================
+      {
+        id: 'oll-sune', type: 'oll', step: 'OLL ②', filter: 'oll2',
+        name: 'Sune', algo: "R U R' U R U2 R'",
+        hint: 'Có dấu thập + 1 góc vàng trên đỉnh.',
+        setup: 'Đặt góc vàng duy nhất ở góc Trên-Trái (Front-Left). Nhìn góc Dưới-Phải (Front-Right) thấy chữ V vàng chĩa ra trước.',
+        top: [0,1,0, 1,1,1, 1,1,0],
+        sides: { top:[1,0,0], bottom:[0,0,1], left:[0,0,0], right:[1,0,0] }
+      },
+      {
+        id: 'oll-antisune', type: 'oll', step: 'OLL ②', filter: 'oll2',
+        name: 'Anti-sune', algo: "R U2 R' U' R U' R'",
+        hint: 'Có dấu thập + 1 góc vàng trên đỉnh.',
+        setup: 'Đặt góc vàng duy nhất ở góc Trên-Trái (Front-Left). Nhìn góc Dưới-Trái (Front-Left) thấy chữ V vàng chĩa ra trước.',
+        top: [1,1,0, 1,1,1, 0,1,0],
+        sides: { top:[0,0,1], bottom:[1,0,0], left:[0,0,0], right:[0,0,1] }
+      },
+      {
+        id: 'oll-h', type: 'oll', step: 'OLL ②', filter: 'oll2',
+        name: 'H Algorithm', algo: "F (R U R' U')3 F'",
+        hint: 'Chỉ có dấu thập. Hai bên hông có 2 cặp đèn pha.',
+        setup: 'Xoay U để 2 cặp đèn pha hướng sang bên Trái và bên Phải (tạo thành hình chữ H).',
+        top: [0,1,0, 1,1,1, 0,1,0],
+        sides: { top:[0,0,0], bottom:[0,0,0], left:[1,0,1], right:[1,0,1] }
+      },
+      {
+        id: 'oll-pi', type: 'oll', step: 'OLL ②', filter: 'oll2',
+        name: 'Pi', algo: "R U2 (R2' U' R2 U') R2' U2 R",
+        hint: 'Chỉ có dấu thập. Chỉ có duy nhất 1 cặp đèn pha.',
+        setup: 'Xoay U để cặp đèn pha nằm ở bên TRÁI. Hai góc bên phải chĩa ra trước và sau.',
+        top: [0,1,0, 1,1,1, 0,1,0],
+        sides: { top:[0,0,1], bottom:[0,0,1], left:[1,0,1], right:[0,0,0] }
+      },
+      {
+        id: 'oll-headlights', type: 'oll', step: 'OLL ②', filter: 'oll2',
+        name: 'Headlights', algo: "R2 D (R' U2 R) D' (R' U2 R')",
+        hint: 'Có 2 góc vàng đã đúng ở phía sau.',
+        setup: 'Xoay U để 2 góc đã đúng nằm ở phía SAU (lưng bạn). Cặp đèn pha ở mặt Trước chĩa thẳng vào mắt bạn.',
+        top: [1,1,1, 1,1,1, 0,1,0],
+        sides: { top:[0,0,0], bottom:[1,0,1], left:[0,0,0], right:[0,0,0] }
+      },
+      {
+        id: 'oll-t', type: 'oll', step: 'OLL ②', filter: 'oll2',
+        name: 'T Algorithm', algo: "(r U R' U') (r' F R F')",
+        hint: '2 góc vàng kề nhau tạo thành hình chữ T.',
+        setup: 'Xoay U để chữ T nằm ngang, 2 góc vàng nằm ở bên PHẢI. Bên trái 2 góc chĩa ngược nhau.',
+        top: [0,1,1, 1,1,1, 0,1,1],
+        sides: { top:[1,0,0], bottom:[1,0,0], left:[0,0,0], right:[0,0,0] }
+      },
+      {
+        id: 'oll-kite', type: 'oll', step: 'OLL ②', filter: 'oll2',
+        name: 'Kite (Bowtie)', algo: "F' (r U R' U') (r' F R)",
+        hint: '2 góc vàng nằm đối chéo nhau.',
+        setup: 'Xoay U để 2 góc vàng chéo nằm ở Trên-Trái (BL) và Dưới-Phải (FR). Góc Dưới-Trái (FL) chĩa vàng ra trước.',
+        top: [1,1,0, 1,1,1, 0,1,1],
+        sides: { top:[0,0,0], bottom:[1,0,0], left:[0,0,0], right:[1,0,0] }
+      },
+      // ================= PLL 1 =================
+      {
+        id: 'pll-t', type: 'pll', step: 'PLL ①', filter: 'pll1',
+        name: 'T-perm', algo: "R U R' U' R' F R2 U' R' U' R U R' F'",
+        hint: 'Tìm 1 cặp Đèn pha (2 góc cùng màu). Mặt đối diện lộn xộn.',
+        setup: 'Xoay U để cặp đèn pha nằm ở bên TRÁI. Bạn sẽ thấy 2 góc bên Phải bị hoán đổi.',
+        sideState: { top:[FACE.BACK, FACE.FRONT, FACE.FRONT], bottom:[FACE.FRONT, FACE.BACK, FACE.BACK], left:[FACE.LEFT, FACE.LEFT, FACE.LEFT], right:[FACE.RIGHT, FACE.RIGHT, FACE.RIGHT] },
+        arrows: [ { from: [0,2], to: [2,2], curve: -25 }, { from: [2,2], to: [0,2], curve: 25 }, { from: [0,1], to: [2,1], curve: -15 }, { from: [2,1], to: [0,1], curve: 15 } ]
+      },
+      {
+        id: 'pll-y', type: 'pll', step: 'PLL ①', filter: 'pll1',
+        name: 'Y-perm', algo: "F R U' R' U' R U R' F' R U R' U' R' F R F'",
+        hint: 'Tìm 2 cặp Đèn pha. Các góc bị lộn xộn hoàn toàn.',
+        setup: 'Xoay U để 1 cặp đèn pha nằm ở bên TRÁI. Các góc chéo nhau sẽ hoán đổi.',
+        sideState: { top:[FACE.FRONT, FACE.LEFT, FACE.BACK], bottom:[FACE.FRONT, FACE.FRONT, FACE.BACK], left:[FACE.RIGHT, FACE.BACK, FACE.LEFT], right:[FACE.RIGHT, FACE.RIGHT, FACE.LEFT] },
+        arrows: [ { from: [0,0], to: [2,2], curve: 30 }, { from: [2,2], to: [0,0], curve: -30 }, { from: [0,1], to: [1,0], curve: 15 }, { from: [1,0], to: [0,1], curve: -15 } ]
+      },
+      // ================= PLL 2 =================
+      {
+        id: 'pll-ua', type: 'pll', step: 'PLL ②', filter: 'pll2',
+        name: 'Ua-perm', algo: "M2 U M U2 M' U M2", alt: "R/U: R2 U R U R' U' R' U' R' U R'",
+        hint: 'Tìm 1 mặt đã giải hoàn toàn (3 viên cùng màu).',
+        setup: 'Xoay U để mặt đã giải hoàn toàn nằm ở phía SAU (lưng bạn). 3 cạnh còn lại xoay ngược chiều kim đồng hồ.',
+        sideState: { top:[FACE.BACK, FACE.BACK, FACE.BACK], bottom:[FACE.FRONT, FACE.LEFT, FACE.FRONT], left:[FACE.LEFT, FACE.RIGHT, FACE.LEFT], right:[FACE.RIGHT, FACE.FRONT, FACE.RIGHT] },
+        arrows: [ { from: [0,1], to: [1,0], curve: 30 }, { from: [1,0], to: [1,2], curve: 30 }, { from: [1,2], to: [0,1], curve: -30 } ]
+      },
+      {
+        id: 'pll-ub', type: 'pll', step: 'PLL ②', filter: 'pll2',
+        name: 'Ub-perm', algo: "M2 U' M U2 M' U' M2", alt: "R/U: R U' R U R U R U' R' U' R2",
+        hint: 'Tìm 1 mặt đã giải hoàn toàn (3 viên cùng màu).',
+        setup: 'Xoay U để mặt đã giải hoàn toàn nằm ở phía SAU (lưng bạn). 3 cạnh còn lại xoay cùng chiều kim đồng hồ.',
+        sideState: { top:[FACE.BACK, FACE.BACK, FACE.BACK], bottom:[FACE.FRONT, FACE.RIGHT, FACE.FRONT], left:[FACE.LEFT, FACE.FRONT, FACE.LEFT], right:[FACE.RIGHT, FACE.LEFT, FACE.RIGHT] },
+        arrows: [ { from: [0,1], to: [1,2], curve: -30 }, { from: [1,2], to: [1,0], curve: -30 }, { from: [1,0], to: [0,1], curve: 30 } ]
+      },
+      {
+        id: 'pll-h', type: 'pll', step: 'PLL ②', filter: 'pll2',
+        name: 'H-perm', algo: "M2 U M2 U2 M2 U M2", alt: "Hoặc: M2 U' M2 U2 M2 U' M2",
+        hint: 'Không có mặt nào đã giải. Các cạnh đối diện hoán đổi.',
+        setup: 'Cầm tùy ý. Hoán đổi Trước↔Sau, Trái↔Phải.',
+        sideState: { top:[FACE.BACK, FACE.FRONT, FACE.BACK], bottom:[FACE.FRONT, FACE.BACK, FACE.FRONT], left:[FACE.LEFT, FACE.RIGHT, FACE.LEFT], right:[FACE.RIGHT, FACE.LEFT, FACE.RIGHT] },
+        arrows: [ { from: [0,1], to: [2,1], curve: -25 }, { from: [2,1], to: [0,1], curve: 25 }, { from: [1,0], to: [1,2], curve: -25 }, { from: [1,2], to: [1,0], curve: 25 } ]
+      },
+      {
+        id: 'pll-z', type: 'pll', step: 'PLL ②', filter: 'pll2',
+        name: 'Z-perm', algo: "M' U M2 U M2 U M' U2 M2", alt: "Hoặc: M2 U M2 U M' U2 M2 U2 M'",
+        hint: 'Không có mặt nào đã giảil">✓</div>
         <h3 class="text-base sm:text-lg font-bold text-white mb-1" id="emptyTitle">Tuyệt vời!</h3>
         <p class="text-xs sm:text-sm text-slate-400 mb-4" id="emptyDesc">Không còn thẻ nào. Chuyển sang xem tất cả để luyện phản xạ.</p>
         <div class="flex gap-2 justify-center flex-wrap">
