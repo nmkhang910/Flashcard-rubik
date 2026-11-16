@@ -4,8 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#0f172a" />
-  <title>Ultimate Rubik - Flashcard</title>
+  <title>Ultimate Rubik - Flashcard & Speedrun</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet" />
   <script>
     tailwind.config = {
@@ -19,132 +20,259 @@
     .transform-style-3d { transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
     .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
     .rotate-y-180 { transform: rotateY(180deg); }
-    body { background: #0f172a; }
+    body { background: #0f172a; color: #e2e8f0; }
     .glow-yellow { filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.4)); }
     .glow-blue { filter: drop-shadow(0 0 8px rgba(14, 165, 233, 0.4)); }
     .filter-scroll::-webkit-scrollbar { display: none; }
     .filter-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-    #error-log { display: none; background: #7f1d1d; color: white; padding: 16px; font-family: monospace; font-size: 14px; z-index: 9999; position: fixed; bottom: 0; left: 0; right: 0; border-top: 2px solid #ef4444; max-height: 30vh; overflow-y: auto; }
+    #error-log { display: none; background: #7f1d1d; color: white; padding: 12px; font-family: monospace; font-size: 13px; z-index: 9999; position: fixed; bottom: 0; left: 0; right: 0; border-top: 2px solid #ef4444; max-height: 25vh; overflow-y: auto; }
   </style>
 </head>
-<body class="text-slate-200 min-h-screen font-sans">
+<body class="bg-slate-900 text-slate-200 min-h-screen font-sans flex flex-col justify-between">
 
-  <header class="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-lg border-b border-slate-800">
-    <div class="max-w-4xl mx-auto px-3 py-3 flex items-center justify-between gap-3">
-      <div class="flex items-center gap-2">
-        <div>
-          <h1 class="text-sm font-extrabold text-white tracking-tight">Ultimate Rubik</h1>
-          <p class="text-[10px] text-brand font-semibold uppercase tracking-wider">2-Look OLL & PLL</p>
+  <div id="error-log"></div>
+
+  <div>
+    <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-lg border-b border-slate-800">
+      <div class="max-w-4xl mx-auto px-3 py-2.5 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <div>
+            <h1 class="text-sm font-extrabold text-white tracking-tight leading-tight">Ultimate Rubik</h1>
+            <p class="text-[10px] text-brand font-semibold uppercase tracking-wider">2-Look OLL & PLL</p>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-1 sm:gap-2">
+          <button id="btnTwoSided" onclick="toggleTwoSidedMode()" title="Chỉ hiện mặt Trước và Phải" class="px-2 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1 bg-slate-900 border-slate-700 text-slate-400 hover:text-white">
+            <span>📐</span>
+            <span class="hidden md:inline">2-Side</span>
+          </button>
+
+          <button id="btnFlashMode" onclick="toggleFlashMode()" title="Tự ẩn sơ đồ sau 2 giây" class="px-2 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1 bg-slate-900 border-slate-700 text-slate-400 hover:text-white">
+            <span id="flashIcon">👁️</span>
+          </button>
+
+          <button id="btnTimerToggle" onclick="toggleTimerActive()" title="Bật/Tắt bấm giờ nhận diện" class="px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1 bg-emerald-500/20 border-emerald-500/50 text-emerald-300">
+            <span>⏱️</span>
+            <span id="timerHeaderDisplay" class="font-mono text-[11px]">0.0s</span>
+          </button>
+
+          <div class="flex items-center bg-slate-800 rounded-xl p-1 border border-slate-700">
+            <button id="btnModeFlashcard" onclick="setViewMode('flashcard')" class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all bg-brand text-slate-900 shadow">Thẻ</button>
+            <button id="btnModeCheatsheet" onclick="setViewMode('cheatsheet')" class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white">Bảng</button>
+            <button id="btnModeAnalytics" onclick="setViewMode('analytics')" class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white">Thống kê</button>
+          </div>
         </div>
       </div>
-      <div class="flex items-center gap-2 bg-slate-800 rounded-xl p-1 border border-slate-700">
-        <button id="btnModeFlashcard" onclick="setViewMode('flashcard')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-brand text-slate-900 shadow">Thẻ</button>
-        <button id="btnModeCheatsheet" onclick="setViewMode('cheatsheet')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white">Bảng</button>
-      </div>
-    </div>
-  </header>
+    </header>
 
-  <main class="max-w-4xl mx-auto px-3 py-4 flex flex-col gap-4">
-    <section class="bg-slate-800/50 border border-slate-700/50 p-2 sm:p-3 rounded-2xl flex flex-col gap-3">
-      <div class="flex overflow-x-auto gap-2 filter-scroll pb-1" id="filterButtons">
-        <button onclick="setFilter('all')" data-filter="all" class="filter-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">Tất cả</button>
-        <button onclick="setFilter('oll1')" data-filter="oll1" class="filter-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">OLL ① (Dấu thập)</button>
-        <button onclick="setFilter('oll2')" data-filter="oll2" class="filter-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">OLL ② (Góc)</button>
-        <button onclick="setFilter('pll1')" data-filter="pll1" class="filter-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">PLL ① (Góc)</button>
-        <button onclick="setFilter('pll2')" data-filter="pll2" class="filter-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">PLL ② (Cạnh)</button>
-      </div>
-      <div class="flex items-center gap-3 px-1">
-        <div class="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
-          <div id="masteredBar" class="h-full bg-emerald-500 transition-all duration-500" style="width: 0%"></div>
+    <main class="max-w-4xl mx-auto px-3 py-3 flex flex-col gap-3">
+      <section class="bg-slate-800/50 border border-slate-700/50 p-2.5 rounded-2xl flex flex-col gap-2.5">
+        <div class="flex overflow-x-auto gap-2 filter-scroll pb-1" id="filterButtons">
+          <button onclick="setFilter('all')" data-filter="all" class="filter-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">Tất cả</button>
+          <button onclick="setFilter('oll1')" data-filter="oll1" class="filter-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">OLL ① (Dấu thập)</button>
+          <button onclick="setFilter('oll2')" data-filter="oll2" class="filter-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">OLL ② (Góc)</button>
+          <button onclick="setFilter('pll1')" data-filter="pll1" class="filter-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">PLL ① (Góc)</button>
+          <button onclick="setFilter('pll2')" data-filter="pll2" class="filter-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">PLL ② (Cạnh)</button>
+          <button onclick="setFilter('due')" data-filter="due" class="filter-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-purple-500/20 text-purple-300 border border-purple-500/40">⏳ Đến hạn ôn</button>
+          <button onclick="setFilter('hard')" data-filter="hard" class="filter-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-rose-500/20 text-rose-300 border border-rose-500/40">⚠️ Cần ôn lại</button>
         </div>
-        <span class="text-xs font-bold text-emerald-400 font-mono" id="masteredText">0/16</span>
-      </div>
-    </section>
-
-    <section id="flashcardView" class="flex flex-col items-center">
-      <div id="cardWrapper" class="w-full max-w-lg">
-        <div class="flex justify-between items-center mb-2 px-1">
-          <span id="cardCounter" class="text-xs font-bold text-slate-400 uppercase tracking-widest">Thẻ 1 / 16</span>
-          <button onclick="shuffleCards()" class="text-xs font-semibold text-brand hover:text-yellow-300 bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700">Xáo trộn</button>
+        <div class="flex items-center gap-3 px-1">
+          <div class="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+            <div id="masteredBar" class="h-full bg-emerald-500 transition-all duration-500" style="width: 0%"></div>
+          </div>
+          <span class="text-xs font-bold text-emerald-400 font-mono" id="masteredText">0/16</span>
         </div>
+      </section>
 
-        <div class="perspective-1000 w-full h-[460px] sm:h-[500px] cursor-pointer" onclick="flipCard()">
-          <div id="cardInner" class="relative w-full h-full transform-style-3d">
-            
-            <!-- FRONT -->
-            <div class="absolute inset-0 backface-hidden bg-slate-800 border border-slate-700 rounded-[2rem] p-5 flex flex-col justify-between shadow-2xl">
-              <div class="flex justify-between items-start">
-                <span id="frontStepBadge" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900/50 border border-slate-700"></span>
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Lật thẻ</span>
-              </div>
-              <div class="flex-1 flex flex-col items-center justify-center relative pt-6">
-                <div id="frontSvgContainer" class="w-52 h-52 sm:w-60 sm:h-60"></div>
-              </div>
-              <div class="bg-slate-900/60 rounded-xl p-3 text-center border border-slate-700/50">
-                <p id="frontHintText" class="text-sm text-slate-300 font-medium"></p>
-              </div>
+      <section id="flashcardView" class="flex flex-col items-center">
+        <div id="cardWrapper" class="w-full max-w-lg">
+          <div class="flex justify-between items-center mb-2 px-1">
+            <div class="flex items-center gap-2">
+              <span id="cardCounter" class="text-xs font-bold text-slate-400 uppercase tracking-widest">Thẻ 1 / 16</span>
+              <span id="pbBadge" class="hidden text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full">🏆 PB: --</span>
             </div>
+            <button onclick="shuffleCards()" class="text-xs font-semibold text-brand hover:text-yellow-300 bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700">Xáo trộn</button>
+          </div>
 
-            <!-- BACK -->
-            <div id="backFace" class="absolute inset-0 backface-hidden rotate-y-180 bg-slate-800 border-2 rounded-[2rem] p-5 flex flex-col justify-between shadow-2xl">
-              <div class="flex items-start justify-between border-b border-slate-700/50 pb-3">
-                <div>
-                  <span id="backStepLabel" class="text-[10px] font-extrabold uppercase tracking-wider text-brand"></span>
-                  <h2 id="backCaseName" class="text-2xl font-black text-white mt-1"></h2>
+          <div class="perspective-1000 w-full h-[530px] sm:h-[560px] cursor-pointer" onclick="flipCard()">
+            <div id="cardInner" class="relative w-full h-full transform-style-3d">
+              
+              <div class="absolute inset-0 backface-hidden bg-slate-800 border border-slate-700 rounded-[2rem] p-4 sm:p-5 flex flex-col justify-between shadow-2xl">
+                <div class="flex justify-between items-start">
+                  <span id="frontStepBadge" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900/50 border border-slate-700"></span>
+                  <div class="flex items-center gap-2">
+                    <span id="timerCardDisplay" class="font-mono text-xs font-extrabold text-emerald-400 bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-700">0.0s</span>
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Lật thẻ</span>
+                  </div>
                 </div>
-                <div id="backMiniSvg" class="w-14 h-14 bg-slate-900 rounded-xl border border-slate-700 p-1"></div>
-              </div>
-              <div class="my-auto py-2">
-                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex justify-between">
-                  <span>Algorithm</span>
-                  <button onclick="event.stopPropagation(); copyAlgorithm()" class="text-brand">Copy 📋</button>
+                <div class="flex-1 flex flex-col items-center justify-center relative pt-2">
+                  <div id="frontSvgContainer" class="w-48 h-48 sm:w-56 sm:h-56 transition-opacity duration-300"></div>
                 </div>
-                <div id="backAlgorithm" class="bg-slate-900 border border-slate-700 rounded-2xl px-3 py-3 text-center font-mono text-base sm:text-lg font-bold leading-relaxed shadow-inner"></div>
-                <div id="backAltAlgo" class="text-center text-xs text-slate-500 mt-2"></div>
-              </div>
-              <div class="bg-brand/10 border border-brand/30 rounded-2xl p-4">
-                <div class="flex items-center gap-2 mb-1.5">
-                  <span class="text-brand text-lg">🎯</span>
-                  <h4 class="text-xs font-bold text-brand uppercase tracking-wider">Cách cầm khối</h4>
+                <div class="bg-slate-900/80 rounded-xl p-3 text-center border border-slate-700/50">
+                  <p id="frontHintText" class="text-sm text-slate-300 font-medium"></p>
                 </div>
-                <p id="backSetupText" class="text-sm text-slate-200 font-medium leading-relaxed"></p>
               </div>
-              <div class="grid grid-cols-2 gap-2 mt-3">
-                <button onclick="event.stopPropagation(); rateCard(false)" class="py-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-xs font-bold text-slate-200 transition">Cần ôn lại</button>
-                <button onclick="event.stopPropagation(); rateCard(true)" class="py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-900 text-xs font-bold transition shadow-lg">Đã thuộc ✓</button>
+
+              <div id="backFace" class="absolute inset-0 backface-hidden rotate-y-180 bg-slate-800 border-2 rounded-[2rem] p-4 sm:p-5 flex flex-col justify-between shadow-2xl">
+                
+                <div class="flex items-start justify-between border-b border-slate-700/60 pb-2">
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span id="backStepLabel" class="text-[11px] font-extrabold uppercase tracking-wider"></span>
+                      <span id="backRecognitionTime" class="hidden text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-slate-900 text-emerald-400 border border-slate-700"></span>
+                    </div>
+                    <h2 id="backCaseName" class="text-lg sm:text-xl font-black text-white mt-0.5 tracking-tight"></h2>
+                  </div>
+                  <div id="backMiniSvg" class="w-14 h-14 bg-slate-900 rounded-xl border border-slate-700 p-1 shrink-0"></div>
+                </div>
+
+                <div class="my-auto py-1">
+                  <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex justify-between items-center">
+                    <div class="flex items-center gap-1.5">
+                      <span>Algorithm</span>
+                      <span id="customAlgoBadge" class="hidden px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[9px]">Custom</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                      <button onclick="event.stopPropagation(); toggleVisualizer()" title="Mô phỏng xoay từng bước" class="text-sky-400 hover:text-sky-300 bg-slate-900 px-2 py-1 rounded-lg border border-slate-700 text-[11px] font-bold active:scale-95 transition flex items-center gap-1">
+                        <span>▶</span>
+                        <span>Mô phỏng</span>
+                      </button>
+                      <button onclick="event.stopPropagation(); toggleEditAlgo()" title="Sửa công thức cá nhân" class="text-slate-300 hover:text-brand bg-slate-900 px-2 py-1 rounded-lg border border-slate-700 text-[11px] font-bold active:scale-95 transition">
+                        ✏️
+                      </button>
+                      <button onclick="event.stopPropagation(); copyAlgorithm()" class="text-brand hover:text-yellow-300 bg-slate-900 px-2 py-1 rounded-lg border border-slate-700 text-[11px] font-bold active:scale-95 transition">
+                        Copy 📋
+                      </button>
+                    </div>
+                  </div>
+
+                  <div id="algoDisplayContainer">
+                    <div id="backAlgorithm" class="bg-slate-950/90 border border-slate-700 rounded-2xl px-3 py-2 text-center font-mono text-sm sm:text-base font-extrabold leading-relaxed shadow-inner tracking-wide"></div>
+                    <div id="backAltAlgo" class="text-center text-[10px] text-slate-400 mt-1 font-mono"></div>
+                  </div>
+
+                  <div id="visualizerContainer" onclick="event.stopPropagation()" class="hidden bg-slate-950 border border-sky-500/40 rounded-2xl p-2.5 flex flex-col gap-2">
+                    <div class="flex items-center justify-between gap-2">
+                      <div id="visSvgBox" class="w-24 h-24 bg-slate-900 rounded-xl border border-slate-800 p-1 shrink-0"></div>
+                      <div class="flex-1 flex flex-col justify-between gap-1.5">
+                        <div class="flex items-center justify-between">
+                          <span id="visStepCounter" class="text-[10px] font-mono font-bold text-sky-400">Bước 0 / 0</span>
+                          <button onclick="toggleVisualizer(false)" class="text-[10px] text-slate-400 hover:text-white px-1.5 py-0.5 bg-slate-900 rounded">Đóng ✕</button>
+                        </div>
+                        <div id="visMoveStrip" class="flex flex-wrap gap-1 max-h-12 overflow-y-auto font-mono text-xs bg-slate-900/80 p-1.5 rounded-lg border border-slate-800"></div>
+                        <div class="grid grid-cols-3 gap-1">
+                          <button onclick="stepVisualizer(-1)" class="py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200">⏮ Lùi</button>
+                          <button id="btnVisPlay" onclick="playPauseVisualizer()" class="py-1 rounded-lg bg-sky-500 hover:bg-sky-400 text-xs font-extrabold text-slate-950">▶ Chạy</button>
+                          <button onclick="stepVisualizer(1)" class="py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200">Tiến ⏭</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div id="algoEditContainer" onclick="event.stopPropagation()" class="hidden bg-slate-950 border border-brand/50 rounded-2xl p-2.5 flex flex-col gap-2">
+                    <input type="text" id="customAlgoInput" placeholder="Nhập công thức (VD: R U R' U')..." class="w-full bg-slate-900 text-white font-mono text-sm px-3 py-2 rounded-xl border border-slate-700 focus:outline-none focus:border-brand select-text" />
+                    <div class="flex justify-end gap-1.5">
+                      <button onclick="resetCustomAlgo()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-rose-400">Mặc định</button>
+                      <button onclick="toggleEditAlgo(false)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-300">Hủy</button>
+                      <button onclick="saveCustomAlgo()" class="px-3 py-1 rounded-lg bg-brand text-slate-950 text-[11px] font-extrabold">Lưu ✓</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div onclick="event.stopPropagation(); copyAlgorithm(currentReverseScramble)" title="Chạm để copy chuỗi setup thế cờ" class="bg-slate-900/90 hover:bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-1.5 flex items-center justify-between gap-2 cursor-pointer transition">
+                  <div class="overflow-hidden">
+                    <span class="text-[9px] font-extrabold uppercase tracking-wider text-purple-400 block">🔄 Tạo thế cờ (Reverse Scramble)</span>
+                    <p id="backReverseScramble" class="font-mono text-xs font-bold text-slate-300 truncate"></p>
+                  </div>
+                  <span class="text-[10px] font-bold text-slate-400 bg-slate-800 px-2 py-1 rounded-lg shrink-0">Copy</span>
+                </div>
+
+                <div id="backSetupBox" class="bg-brand/10 border-brand/30 rounded-2xl p-2.5 border mt-1">
+                  <div class="flex items-center gap-1.5 mb-0.5">
+                    <span class="text-xs">🎯</span>
+                    <h4 id="backSetupTitle" class="text-[10px] font-extrabold uppercase tracking-wider text-brand">Cách đặt khối (Setup)</h4>
+                  </div>
+                  <p id="backSetupText" class="text-xs text-slate-200 font-medium leading-snug"></p>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 mt-1">
+                  <button onclick="event.stopPropagation(); handleSRS('again')" class="py-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 text-xs font-bold transition flex flex-col items-center">
+                    <span>Again</span>
+                    <span class="text-[9px] opacity-75">Quên</span>
+                  </button>
+                  <button onclick="event.stopPropagation(); handleSRS('hard')" class="py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-xs font-bold transition flex flex-col items-center">
+                    <span>Hard</span>
+                    <span class="text-[9px] opacity-75">1 ngày</span>
+                  </button>
+                  <button onclick="event.stopPropagation(); handleSRS('easy')" class="py-2.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-bold transition flex flex-col items-center">
+                    <span>Easy</span>
+                    <span class="text-[9px] opacity-75">3 ngày</span>
+                  </button>
+                </div>
+
               </div>
+
             </div>
+          </div>
 
+          <div class="mt-3 flex gap-2">
+            <button onclick="prevCard()" class="flex-1 py-3 rounded-xl bg-slate-800 border border-slate-700 text-sm font-bold text-slate-300 active:scale-95 transition">Trước</button>
+            <button onclick="nextCard()" class="flex-[2] py-3 rounded-xl bg-brand text-slate-900 text-sm font-black shadow-lg active:scale-95 transition">Tiếp theo</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="cheatsheetView" class="hidden flex-col gap-4 pb-10">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="cheatsheetGrid"></div>
+      </section>
+
+      <section id="analyticsView" class="hidden flex-col gap-4 pb-10">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Thời gian TB (7 ngày)</span>
+            <span id="statAvgTime" class="text-3xl font-black text-emerald-400 font-mono mt-1">0.0s</span>
+          </div>
+          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Đã thành thạo (SRS)</span>
+            <span id="statMasteredCount" class="text-3xl font-black text-brand font-mono mt-1">0/16</span>
+          </div>
+          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Đến hạn ôn hôm nay</span>
+            <span id="statDueCount" class="text-3xl font-black text-purple-400 font-mono mt-1">0</span>
           </div>
         </div>
 
-        <div class="mt-4 flex gap-2">
-          <button onclick="prevCard()" class="flex-1 py-3 rounded-xl bg-slate-800 border border-slate-700 text-sm font-bold text-slate-300">Trước</button>
-          <button onclick="nextCard()" class="flex-[2] py-3 rounded-xl bg-brand text-slate-900 text-sm font-black shadow-lg">Tiếp theo</button>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4 flex flex-col gap-2">
+            <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">📈 Tốc độ nhận diện 7 ngày qua</h3>
+            <div class="relative w-full h-64"><canvas id="timeChart"></canvas></div>
+          </div>
+          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4 flex flex-col gap-2">
+            <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">🥧 Tỷ lệ các case hay Quên (Again)</h3>
+            <div class="relative w-full h-64 flex items-center justify-center"><canvas id="errorChart"></canvas></div>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </main>
+  </div>
 
-    <section id="cheatsheetView" class="hidden flex-col gap-6 pb-10">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="cheatsheetGrid"></div>
-    </section>
-  </main>
+  <footer class="text-center py-4 text-[11px] text-slate-500 border-t border-slate-800/80 mt-6">
+    Ultimate Rubik Flashcard • 2-Look OLL & PLL Training System
+  </footer>
 
-  <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-600 text-white text-sm font-bold px-5 py-2.5 rounded-full shadow-2xl opacity-0 transition-opacity duration-300 pointer-events-none z-50"></div>
-  
-  <!-- KHU VỰC HIỂN THỊ LỖI (NẾU CÓ) -->
-  <div id="error-log"></div>
+  <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-600 text-white text-xs font-bold px-4 py-2 rounded-full shadow-2xl opacity-0 transition-opacity duration-300 pointer-events-none z-50"></div>
 
   <script>
-    // Bắt toàn bộ lỗi toàn cục và in ra màn hình
-    window.onerror = function(msg, url, line, col, error) {
+    window.onerror = function(msg, url, line) {
       const errDiv = document.getElementById('error-log');
-      errDiv.style.display = 'block';
-      errDiv.innerHTML += `<div>⚠️ <b>Lỗi JS:</b> ${msg} (Dòng ${line})</div>`;
+      if (errDiv) {
+        errDiv.style.display = 'block';
+        errDiv.innerHTML += '<div>⚠️ Lỗi JS: ' + msg + ' (Dòng ' + line + ')</div>';
+      }
       return false;
     };
 
-    // Dữ liệu được làm phẳng, không có ký tự xuống dòng lạ
     const RAW_DATA = [
       { id: 'oll-line', type: 'oll', step: 'OLL ①', filter: 'oll1', name: 'Line', algo: "F (R U R' U') F'", hint: 'Tìm thanh ngang màu vàng.', setup: 'Xoay U để thanh ngang nằm song song với bàn (từ Trái sang Phải).', top: [0,0,0,1,1,1,0,0,0], sides: { top:[0,1,0], bottom:[0,1,0], left:[0,0,0], right:[0,0,0] } },
       { id: 'oll-l', type: 'oll', step: 'OLL ①', filter: 'oll1', name: 'L-Shape', algo: "f (R U R' U') f'", alt: "Hoặc: F U R U' R' F'", hint: 'Tìm 2 cạnh vàng tạo thành góc vuông.', setup: 'Xoay U để 2 cạnh vàng nằm ở hướng 6 giờ (mặt Trước) và 3 giờ (mặt Phải).', top: [0,0,0,0,1,1,0,1,0], sides: { top:[0,1,0], bottom:[0,0,0], left:[0,1,0], right:[0,0,0] } },
@@ -164,211 +292,906 @@
       { id: 'pll-z', type: 'pll', step: 'PLL ②', filter: 'pll2', name: 'Z-perm', algo: "M' U M2 U M2 U M' U2 M2", alt: "Hoặc: M2 U M2 U M' U2 M2 U2 M'", hint: '0 mặt đã giải.', setup: 'Cầm tùy ý. Hoán đổi Trước↔Trái, Sau↔Phải.', sideState: { top:['#3B82F6','#EF4444','#3B82F6'], bottom:['#22C55E','#F97316','#22C55E'], left:['#F97316','#22C55E','#F97316'], right:['#EF4444','#3B82F6','#EF4444'] }, arrows: [ { from: [0,1], to: [1,2], curve: -20 }, { from: [1,2], to: [0,1], curve: 20 }, { from: [2,1], to: [1,0], curve: -20 }, { from: [1,0], to: [2,1], curve: 20 } ] }
     ];
 
-    let currentFilter = 'all', filteredDeck = [], currentIndex = 0;
-    let isFlipped = false, isSwiping = false;
-    let mastered = new Set();
+    let currentFilter = 'all';
+    let filteredDeck = [];
+    let currentIndex = 0;
+    let isFlipped = false;
+    let isSwiping = false;
+    let twoSidedMode = false;
+    let flashMode = false;
+    let flashTimeout = null;
+    let currentReverseScramble = '';
+
+    let srsData = {};
+    let customAlgos = {};
+    let personalBests = {};
+    let analyticsHistory = [];
+    let errorCounts = {};
+
+    let timerActive = true;
+    let timerInterval = null;
+    let startTime = 0;
+    let elapsedTime = 0;
+
+    let isVisualizerOpen = false;
+    let visMoves = [];
+    let visStates = [];
+    let visCurrentStep = 0;
+    let visPlayInterval = null;
+
+    let isEditingAlgo = false;
+    let timeChartInstance = null;
+    let errorChartInstance = null;
 
     const COLOR_MAP = { R: 'text-sky-400', L: 'text-orange-400', U: 'text-yellow-400', D: 'text-red-400', F: 'text-emerald-400', B: 'text-purple-400', M: 'text-slate-400' };
 
-    // HÀM KHỞI TẠO AN TOÀN
     function initApp() {
       try {
-        // Phục hồi dữ liệu an toàn
-        let saved = localStorage.getItem('rubik_ultimate_safe');
-        if (saved) {
-          let arr = JSON.parse(saved);
-          if (Array.isArray(arr)) {
-            mastered = new Set(arr.filter(id => RAW_DATA.some(d => d.id === id)));
-          }
-        }
-      } catch (e) {
-        localStorage.removeItem('rubik_ultimate_safe');
-      }
-      
+        const savedSRS = localStorage.getItem('rubik_srs_data');
+        if (savedSRS) srsData = JSON.parse(savedSRS);
+
+        const savedAlgos = localStorage.getItem('rubik_custom_algos');
+        if (savedAlgos) customAlgos = JSON.parse(savedAlgos);
+
+        const savedPBs = localStorage.getItem('rubik_personal_bests');
+        if (savedPBs) personalBests = JSON.parse(savedPBs);
+
+        const savedHistory = localStorage.getItem('rubik_analytics_history');
+        if (savedHistory) analyticsHistory = JSON.parse(savedHistory);
+
+        const savedErrors = localStorage.getItem('rubik_error_counts');
+        if (savedErrors) errorCounts = JSON.parse(savedErrors);
+      } catch (e) {}
+
       updateUI();
       setFilter('all');
     }
 
-    // HÀM VẼ SVG (CÓ BẢO VỆ)
-    function cellCenter(r, c) { return [36 + c * 49 + 23, 36 + r * 49 + 23]; }
-    function drawArrow(from, to, curve, color) {
-      const [x1, y1] = cellCenter(from[0], from[1]), [x2, y2] = cellCenter(to[0], to[1]);
-      const inset = 16, dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy);
-      const ux = dx / len, uy = dy / len, sx = x1 + ux * inset, sy = y1 + uy * inset, ex = x2 - ux * inset, ey = y2 - uy * inset;
-      const mx = (sx + ex) / 2, my = (sy + ey) / 2, px = -uy, py = ux;
-      const cx = mx + px * curve, cy = my + py * curve;
-      const tdx = ex - cx, tdy = ey - cy, tlen = Math.hypot(tdx, tdy);
-      const tux = tdx / tlen, tuy = tdy / tlen, nx = -tuy, ny = tux;
-      const hLen = 8, hW = 4.5;
-      return `<path d="M ${sx} ${sy} Q ${cx} ${cy} ${ex - tux*hLen*0.7} ${ey - tuy*hLen*0.7}" stroke="${color}" stroke-width="2.5" fill="none" stroke-linecap="round" class="glow-blue"/><polygon points="${ex},${ey} ${ex-tux*hLen+nx*hW},${ey-tuy*hLen+ny*hW} ${ex-tux*hLen-nx*hW},${ey-tuy*hLen-ny*hW}" fill="${color}"/>`;
+    function cellCenter(r, c) {
+      return [36 + c * 49 + 23, 36 + r * 49 + 23];
     }
 
-    function renderSVG(item, isMini = false) {
+    function drawArrow(from, to, curve, color) {
+      const p1 = cellCenter(from[0], from[1]);
+      const p2 = cellCenter(to[0], to[1]);
+      const x1 = p1[0], y1 = p1[1], x2 = p2[0], y2 = p2[1];
+      const inset = 16;
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const len = Math.hypot(dx, dy);
+      const ux = dx / len;
+      const uy = dy / len;
+      const sx = x1 + ux * inset;
+      const sy = y1 + uy * inset;
+      const ex = x2 - ux * inset;
+      const ey = y2 - uy * inset;
+      const mx = (sx + ex) / 2;
+      const my = (sy + ey) / 2;
+      const px = -uy;
+      const py = ux;
+      const cx = mx + px * curve;
+      const cy = my + py * curve;
+      const tdx = ex - cx;
+      const tdy = ey - cy;
+      const tlen = Math.hypot(tdx, tdy);
+      const tux = tdx / tlen;
+      const tuy = tdy / tlen;
+      const nx = -tuy;
+      const ny = tux;
+      const hLen = 8;
+      const hW = 4.5;
+      return '<path d="M ' + sx + ' ' + sy + ' Q ' + cx + ' ' + cy + ' ' + (ex - tux * hLen * 0.7) + ' ' + (ey - tuy * hLen * 0.7) + '" stroke="' + color + '" stroke-width="2.5" fill="none" stroke-linecap="round" class="glow-blue"/><polygon points="' + ex + ',' + ey + ' ' + (ex - tux * hLen + nx * hW) + ',' + (ey - tuy * hLen + ny * hW) + ' ' + (ex - tux * hLen - nx * hW) + ',' + (ey - tuy * hLen - ny * hW) + '" fill="' + color + '"/>';
+    }
+
+    function renderSVG(item, isMini) {
       try {
         if (!item) return '';
         const size = 46, gap = 3, start = 36, sideT = 11, sideG = 5;
-        let svg = `<defs><linearGradient id="y-${item.id}-${isMini}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FDE047"/><stop offset="100%" stop-color="#EAB308"/></linearGradient></defs><rect x="16" y="16" width="188" height="188" rx="22" fill="#0F172A" stroke="#1E293B" stroke-width="3"/>`;
+        let svg = '<defs><linearGradient id="y-' + item.id + '-' + isMini + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FDE047"/><stop offset="100%" stop-color="#EAB308"/></linearGradient></defs><rect x="16" y="16" width="188" height="188" rx="22" fill="#0F172A" stroke="#1E293B" stroke-width="3"/>';
         
         for (let r = 0; r < 3; r++) {
           for (let c = 0; c < 3; c++) {
-            let isY = item.type === 'pll' ? true : (item.top && item.top[r*3+c] === 1);
-            let x = start + c * (size + gap), y = start + r * (size + gap);
-            svg += `<rect x="${x}" y="${y}" width="${size}" height="${size}" rx="7" fill="${isY ? `url(#y-${item.id}-${isMini})` : '#334155'}" stroke="${isY ? '#EAB308' : '#1E293B'}" stroke-width="1.5" ${isY && !isMini ? 'class="glow-yellow"' : ''}/>`;
+            const isY = item.type === 'pll' ? true : (item.top && item.top[r * 3 + c] === 1);
+            const x = start + c * (size + gap);
+            const y = start + r * (size + gap);
+            const fillVal = isY ? 'url(#y-' + item.id + '-' + isMini + ')' : '#334155';
+            const strokeVal = isY ? '#EAB308' : '#1E293B';
+            const clsVal = (isY && !isMini) ? 'class="glow-yellow"' : '';
+            svg += '<rect x="' + x + '" y="' + y + '" width="' + size + '" height="' + size + '" rx="7" fill="' + fillVal + '" stroke="' + strokeVal + '" stroke-width="1.5" ' + clsVal + '/>';
           }
         }
         
+        const hideHiddenSides = twoSidedMode && !isMini;
+
         for (let i = 0; i < 3; i++) {
-          let pos = start + i * (size + gap);
-          let getC = (key, idx) => {
+          const pos = start + i * (size + gap);
+          const getC = function(key, idx) {
+            if (hideHiddenSides && (key === 'top' || key === 'left')) return '#0F172A';
             if (item.type === 'pll') return (item.sideState && item.sideState[key]) ? item.sideState[key][idx] : '#1E293B';
             return (item.sides && item.sides[key] && item.sides[key][idx] === 1) ? '#FDE047' : '#1E293B';
           };
-          svg += `<rect x="${pos + 2}" y="${start - sideG - sideT}" width="${size - 4}" height="${sideT}" rx="4" fill="${getC('top', i)}" stroke="#0F172A" stroke-width="0.5"/>`;
-          svg += `<rect x="${pos + 2}" y="${start + 3*size + 2*gap + sideG}" width="${size - 4}" height="${sideT}" rx="4" fill="${getC('bottom', i)}" stroke="#0F172A" stroke-width="0.5"/>`;
-          svg += `<rect x="${start - sideG - sideT}" y="${pos + 2}" width="${sideT}" height="${size - 4}" rx="4" fill="${getC('left', i)}" stroke="#0F172A" stroke-width="0.5"/>`;
-          svg += `<rect x="${start + 3*size + 2*gap + sideG}" y="${pos + 2}" width="${sideT}" height="${size - 4}" rx="4" fill="${getC('right', i)}" stroke="#0F172A" stroke-width="0.5"/>`;
+          const hiddenStrokeTop = (hideHiddenSides) ? 'stroke="#1E293B" stroke-dasharray="2,2"' : 'stroke="#0F172A"';
+          
+          svg += '<rect x="' + (pos + 2) + '" y="' + (start - sideG - sideT) + '" width="' + (size - 4) + '" height="' + sideT + '" rx="4" fill="' + getC('top', i) + '" ' + hiddenStrokeTop + ' stroke-width="0.8"/>';
+          svg += '<rect x="' + (pos + 2) + '" y="' + (start + 3 * size + 2 * gap + sideG) + '" width="' + (size - 4) + '" height="' + sideT + '" rx="4" fill="' + getC('bottom', i) + '" stroke="#0F172A" stroke-width="0.5"/>';
+          svg += '<rect x="' + (start - sideG - sideT) + '" y="' + (pos + 2) + '" width="' + sideT + '" height="' + (size - 4) + '" rx="4" fill="' + getC('left', i) + '" ' + hiddenStrokeTop + ' stroke-width="0.8"/>';
+          svg += '<rect x="' + (start + 3 * size + 2 * gap + sideG) + '" y="' + (pos + 2) + '" width="' + sideT + '" height="' + (size - 4) + '" rx="4" fill="' + getC('right', i) + '" stroke="#0F172A" stroke-width="0.5"/>';
         }
-        if (item.arrows && !isMini) item.arrows.forEach(a => svg += drawArrow(a.from, a.to, a.curve, '#0EA5E9'));
-        return `<svg viewBox="0 0 220 220" class="w-full h-full overflow-visible">${svg}</svg>`;
-      } catch (e) { return `<div class="text-xs text-red-500">Lỗi SVG</div>`; }
+
+        if (item.arrows && !isMini) {
+          item.arrows.forEach(function(a) {
+            svg += drawArrow(a.from, a.to, a.curve, '#0EA5E9');
+          });
+        }
+        return '<svg viewBox="0 0 220 220" class="w-full h-full overflow-visible">' + svg + '</svg>';
+      } catch (e) { 
+        return '<div class="text-xs text-red-500">Lỗi SVG</div>'; 
+      }
     }
 
-    // HÀM RENDER GIAO DIỆN
+    function generateReverseScramble(algoStr) {
+      const expanded = algoStr.replace(/\(([^)]+)\)(\d+)/g, function(_, group, count) {
+        return Array(parseInt(count, 10)).fill(group).join(' ');
+      }).replace(/[()]/g, ' ');
+
+      const tokens = expanded.trim().split(/\s+/).filter(Boolean);
+      const reversed = tokens.reverse().map(function(move) {
+        if (move.endsWith('2')) return move;
+        if (move.endsWith("'")) return move.slice(0, -1);
+        return move + "'";
+      });
+      return reversed.join(' ');
+    }
+
+    const CubeSim = {
+      createSolved: function() {
+        return {
+          U: Array(9).fill('#FACC15'), D: Array(9).fill('#F8FAFC'),
+          F: Array(9).fill('#22C55E'), B: Array(9).fill('#3B82F6'),
+          L: Array(9).fill('#F97316'), R: Array(9).fill('#EF4444')
+        };
+      },
+      clone: function(s) {
+        return { U: s.U.slice(), D: s.D.slice(), F: s.F.slice(), B: s.B.slice(), L: s.L.slice(), R: s.R.slice() };
+      },
+      rotFaceCW: function(f) {
+        return [f[6], f[3], f[0], f[7], f[4], f[1], f[8], f[5], f[2]];
+      },
+      applySingleMove: function(s, base) {
+        let c = this.clone(s);
+        if (base === 'U') {
+          c.U = this.rotFaceCW(s.U);
+          c.F[0] = s.R[0]; c.F[1] = s.R[1]; c.F[2] = s.R[2];
+          c.L[0] = s.F[0]; c.L[1] = s.F[1]; c.L[2] = s.F[2];
+          c.B[0] = s.L[0]; c.B[1] = s.L[1]; c.B[2] = s.L[2];
+          c.R[0] = s.B[0]; c.R[1] = s.B[1]; c.R[2] = s.B[2];
+        } else if (base === 'D') {
+          c.D = this.rotFaceCW(s.D);
+          c.F[6] = s.L[6]; c.F[7] = s.L[7]; c.F[8] = s.L[8];
+          c.R[6] = s.F[6]; c.R[7] = s.F[7]; c.R[8] = s.F[8];
+          c.B[6] = s.R[6]; c.B[7] = s.R[7]; c.B[8] = s.R[8];
+          c.L[6] = s.B[6]; c.L[7] = s.B[7]; c.L[8] = s.B[8];
+        } else if (base === 'R') {
+          c.R = this.rotFaceCW(s.R);
+          c.U[2] = s.F[2]; c.U[5] = s.F[5]; c.U[8] = s.F[8];
+          c.B[6] = s.U[2]; c.B[3] = s.U[5]; c.B[0] = s.U[8];
+          c.D[2] = s.B[6]; c.D[5] = s.B[3]; c.D[8] = s.B[0];
+          c.F[2] = s.D[2]; c.F[5] = s.D[5]; c.F[8] = s.D[8];
+        } else if (base === 'L') {
+          c.L = this.rotFaceCW(s.L);
+          c.F[0] = s.U[0]; c.F[3] = s.U[3]; c.F[6] = s.U[6];
+          c.D[0] = s.F[0]; c.D[3] = s.F[3]; c.D[6] = s.F[6];
+          c.B[8] = s.D[0]; c.B[5] = s.D[3]; c.B[2] = s.D[6];
+          c.U[0] = s.B[8]; c.U[3] = s.B[5]; c.U[6] = s.B[2];
+        } else if (base === 'F') {
+          c.F = this.rotFaceCW(s.F);
+          c.U[6] = s.L[8]; c.U[7] = s.L[5]; c.U[8] = s.L[2];
+          c.R[0] = s.U[6]; c.R[3] = s.U[7]; c.R[6] = s.U[8];
+          c.D[2] = s.R[0]; c.D[1] = s.R[3]; c.D[0] = s.R[6];
+          c.L[8] = s.D[2]; c.L[5] = s.D[1]; c.L[2] = s.D[0];
+        } else if (base === 'B') {
+          c.B = this.rotFaceCW(s.B);
+          c.U[2] = s.R[8]; c.U[1] = s.R[5]; c.U[0] = s.R[2];
+          c.L[0] = s.U[2]; c.L[3] = s.U[1]; c.L[6] = s.U[0];
+          c.D[6] = s.L[0]; c.D[7] = s.L[3]; c.D[8] = s.L[6];
+          c.R[8] = s.D[6]; c.R[5] = s.D[7]; c.R[2] = s.D[8];
+        } else if (base === 'M') {
+          c.F[1] = s.U[1]; c.F[4] = s.U[4]; c.F[7] = s.U[7];
+          c.D[1] = s.F[1]; c.D[4] = s.F[4]; c.D[7] = s.F[7];
+          c.B[7] = s.D[1]; c.B[4] = s.D[4]; c.B[1] = s.D[7];
+          c.U[1] = s.B[7]; c.U[4] = s.B[4]; c.U[7] = s.B[1];
+        } else if (base === 'r') {
+          c = this.applySingleMove(c, 'R');
+          c = this.applySingleMove(c, 'M');
+          c = this.applySingleMove(c, 'M');
+          c = this.applySingleMove(c, 'M');
+        } else if (base === 'f') {
+          c = this.applySingleMove(c, 'F');
+          c.U[3] = s.L[7]; c.U[4] = s.L[4]; c.U[5] = s.L[1];
+          c.R[1] = s.U[3]; c.R[4] = s.U[4]; c.R[7] = s.U[5];
+          c.D[5] = s.R[1]; c.D[4] = s.R[4]; c.D[3] = s.R[7];
+          c.L[7] = s.D[5]; c.L[4] = s.D[4]; c.L[1] = s.D[3];
+        }
+        return c;
+      },
+      executeMove: function(state, token) {
+        const base = token.replace(/['2]/g, '');
+        let turns = 1;
+        if (token.endsWith('2')) turns = 2;
+        else if (token.endsWith("'")) turns = 3;
+        let cur = state;
+        for (let i = 0; i < turns; i++) cur = this.applySingleMove(cur, base);
+        return cur;
+      },
+      buildSequence: function(algoStr) {
+        const expanded = algoStr.replace(/\(([^)]+)\)(\d+)/g, function(_, g, c) {
+          return Array(parseInt(c, 10)).fill(g).join(' ');
+        }).replace(/[()]/g, ' ');
+        const moves = expanded.trim().split(/\s+/).filter(Boolean);
+        const revMoves = moves.slice().reverse().map(function(m) {
+          return m.endsWith('2') ? m : (m.endsWith("'") ? m.slice(0, -1) : m + "'");
+        });
+        let state = this.createSolved();
+        for (let i = 0; i < revMoves.length; i++) state = this.executeMove(state, revMoves[i]);
+        const states = [state];
+        for (let i = 0; i < moves.length; i++) {
+          state = this.executeMove(state, moves[i]);
+          states.push(state);
+        }
+        return { moves: moves, states: states };
+      },
+      renderTopSVG: function(state) {
+        const size = 46, gap = 3, start = 36, sideT = 11, sideG = 5;
+        let svg = '<rect x="16" y="16" width="188" height="188" rx="22" fill="#0F172A" stroke="#1E293B" stroke-width="3"/>';
+        for (let r = 0; r < 3; r++) {
+          for (let c = 0; c < 3; c++) {
+            const color = state.U[r * 3 + c];
+            const x = start + c * (size + gap);
+            const y = start + r * (size + gap);
+            svg += '<rect x="' + x + '" y="' + y + '" width="' + size + '" height="' + size + '" rx="7" fill="' + color + '" stroke="#0F172A" stroke-width="1.5"/>';
+          }
+        }
+        const topColors = [state.B[2], state.B[1], state.B[0]];
+        const botColors = [state.F[0], state.F[1], state.F[2]];
+        const leftColors = [state.L[0], state.L[1], state.L[2]];
+        const rightColors = [state.R[2], state.R[1], state.R[0]];
+
+        for (let i = 0; i < 3; i++) {
+          const pos = start + i * (size + gap);
+          svg += '<rect x="' + (pos + 2) + '" y="' + (start - sideG - sideT) + '" width="' + (size - 4) + '" height="' + sideT + '" rx="4" fill="' + topColors[i] + '"/>';
+          svg += '<rect x="' + (pos + 2) + '" y="' + (start + 3 * size + 2 * gap + sideG) + '" width="' + (size - 4) + '" height="' + sideT + '" rx="4" fill="' + botColors[i] + '"/>';
+          svg += '<rect x="' + (start - sideG - sideT) + '" y="' + (pos + 2) + '" width="' + sideT + '" height="' + (size - 4) + '" rx="4" fill="' + leftColors[i] + '"/>';
+          svg += '<rect x="' + (start + 3 * size + 2 * gap + sideG) + '" y="' + (pos + 2) + '" width="' + sideT + '" height="' + (size - 4) + '" rx="4" fill="' + rightColors[i] + '"/>';
+        }
+        return '<svg viewBox="0 0 220 220" class="w-full h-full">' + svg + '</svg>';
+      }
+    };
+
+    function toggleVisualizer(forceState) {
+      if (!filteredDeck.length) return;
+      isVisualizerOpen = (forceState !== undefined && forceState !== null) ? forceState : !isVisualizerOpen;
+      const visBox = document.getElementById('visualizerContainer');
+      const dispBox = document.getElementById('algoDisplayContainer');
+      const editBox = document.getElementById('algoEditContainer');
+
+      clearInterval(visPlayInterval);
+      visPlayInterval = null;
+      document.getElementById('btnVisPlay').textContent = '▶ Chạy';
+
+      if (isVisualizerOpen) {
+        isEditingAlgo = false;
+        editBox.classList.add('hidden');
+        dispBox.classList.add('hidden');
+        visBox.classList.remove('hidden');
+
+        const algo = getEffectiveAlgo(filteredDeck[currentIndex]);
+        const seq = CubeSim.buildSequence(algo);
+        visMoves = seq.moves;
+        visStates = seq.states;
+        visCurrentStep = 0;
+        renderVisualizerStep();
+      } else {
+        visBox.classList.add('hidden');
+        dispBox.classList.remove('hidden');
+      }
+    }
+
+    function renderVisualizerStep() {
+      if (!visStates.length) return;
+      document.getElementById('visSvgBox').innerHTML = CubeSim.renderTopSVG(visStates[visCurrentStep]);
+      document.getElementById('visStepCounter').textContent = 'Bước ' + visCurrentStep + ' / ' + visMoves.length;
+      
+      const strip = document.getElementById('visMoveStrip');
+      strip.innerHTML = visMoves.map(function(m, idx) {
+        const isCurrent = idx === visCurrentStep - 1;
+        const isDone = idx < visCurrentStep - 1;
+        const cls = isCurrent ? 'bg-sky-500 text-slate-950 font-black scale-105' : (isDone ? 'text-slate-400' : 'text-slate-200');
+        return '<span onclick="jumpVisualizer(' + (idx + 1) + ')" class="cursor-pointer px-1.5 py-0.5 rounded ' + cls + ' transition">' + m + '</span>';
+      }).join('');
+    }
+
+    function jumpVisualizer(step) {
+      visCurrentStep = Math.max(0, Math.min(visMoves.length, step));
+      renderVisualizerStep();
+    }
+
+    function stepVisualizer(delta) {
+      if (!visStates.length) return;
+      visCurrentStep = (visCurrentStep + delta + visStates.length) % visStates.length;
+      renderVisualizerStep();
+    }
+
+    function playPauseVisualizer() {
+      const btn = document.getElementById('btnVisPlay');
+      if (visPlayInterval) {
+        clearInterval(visPlayInterval);
+        visPlayInterval = null;
+        btn.textContent = '▶ Chạy';
+      } else {
+        if (visCurrentStep >= visMoves.length) visCurrentStep = 0;
+        btn.textContent = '⏸ Dừng';
+        visPlayInterval = setInterval(function() {
+          if (visCurrentStep < visMoves.length) {
+            visCurrentStep++;
+            renderVisualizerStep();
+          } else {
+            clearInterval(visPlayInterval);
+            visPlayInterval = null;
+            btn.textContent = '↺ Chạy lại';
+          }
+        }, 650);
+      }
+    }
+
+    function handleSRS(rating) {
+      if (!filteredDeck.length) return;
+      const item = filteredDeck[currentIndex];
+      const now = Date.now();
+      const ONE_DAY = 24 * 60 * 60 * 1000;
+
+      if (!srsData[item.id]) srsData[item.id] = { interval: 0, dueDate: 0, box: 'new' };
+
+      if (rating === 'again') {
+        srsData[item.id].interval = 0;
+        srsData[item.id].dueDate = now;
+        srsData[item.id].box = 'again';
+        errorCounts[item.id] = (errorCounts[item.id] || 0) + 1;
+        localStorage.setItem('rubik_error_counts', JSON.stringify(errorCounts));
+        showToast('Đã ghi nhận quên. Thẻ sẽ lặp lại!');
+      } else if (rating === 'hard') {
+        srsData[item.id].interval = 1;
+        srsData[item.id].dueDate = now + ONE_DAY;
+        srsData[item.id].box = 'hard';
+        showToast('Hẹn gặp lại sau 1 ngày!');
+      } else if (rating === 'easy') {
+        srsData[item.id].interval = 3;
+        srsData[item.id].dueDate = now + 3 * ONE_DAY;
+        srsData[item.id].box = 'easy';
+        showToast('Đã thuộc! Hẹn gặp lại sau 3 ngày!');
+      }
+
+      localStorage.setItem('rubik_srs_data', JSON.stringify(srsData));
+      updateUI();
+      nextCard();
+    }
+
+    function isDue(id) {
+      const entry = srsData[id];
+      if (!entry) return true;
+      return Date.now() >= entry.dueDate;
+    }
+
+    function getEffectiveAlgo(item) {
+      return (customAlgos && customAlgos[item.id]) ? customAlgos[item.id] : item.algo;
+    }
+
+    function toggleEditAlgo(forceState) {
+      isEditingAlgo = (forceState !== undefined && forceState !== null) ? forceState : !isEditingAlgo;
+      const dispBox = document.getElementById('algoDisplayContainer');
+      const editBox = document.getElementById('algoEditContainer');
+      const visBox = document.getElementById('visualizerContainer');
+
+      visBox.classList.add('hidden');
+      isVisualizerOpen = false;
+
+      if (isEditingAlgo) {
+        dispBox.classList.add('hidden');
+        editBox.classList.remove('hidden');
+        const item = filteredDeck[currentIndex];
+        document.getElementById('customAlgoInput').value = getEffectiveAlgo(item);
+      } else {
+        editBox.classList.add('hidden');
+        dispBox.classList.remove('hidden');
+      }
+    }
+
+    function saveCustomAlgo() {
+      if (!filteredDeck.length) return;
+      const item = filteredDeck[currentIndex];
+      const val = document.getElementById('customAlgoInput').value.trim();
+      if (!val) return;
+
+      customAlgos[item.id] = val;
+      localStorage.setItem('rubik_custom_algos', JSON.stringify(customAlgos));
+      toggleEditAlgo(false);
+      renderCard();
+      showToast('Đã lưu công thức mới!');
+    }
+
+    function resetCustomAlgo() {
+      if (!filteredDeck.length) return;
+      const item = filteredDeck[currentIndex];
+      delete customAlgos[item.id];
+      localStorage.setItem('rubik_custom_algos', JSON.stringify(customAlgos));
+      toggleEditAlgo(false);
+      renderCard();
+      showToast('Đã khôi phục công thức mặc định!');
+    }
+
+    function toggleTimerActive() {
+      timerActive = !timerActive;
+      const btn = document.getElementById('btnTimerToggle');
+      if (timerActive) {
+        btn.className = 'px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1 bg-emerald-500/20 border-emerald-500/50 text-emerald-300';
+        showToast('⏱️ Bật bấm giờ nhận diện');
+      } else {
+        btn.className = 'px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1 bg-slate-900 border-slate-700 text-slate-400 hover:text-white';
+        stopTimer(true);
+        showToast('⏱️ Tắt bấm giờ nhận diện');
+      }
+    }
+
+    function startTimer() {
+      if (!timerActive) return;
+      stopTimer(true);
+      startTime = Date.now();
+      timerInterval = setInterval(function() {
+        elapsedTime = (Date.now() - startTime) / 1000;
+        const txt = elapsedTime.toFixed(1) + 's';
+        const elCard = document.getElementById('timerCardDisplay');
+        const elHead = document.getElementById('timerHeaderDisplay');
+        if (elCard) elCard.textContent = txt;
+        if (elHead) elHead.textContent = txt;
+      }, 100);
+    }
+
+    function stopTimer(silent) {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      if (!silent && timerActive && elapsedTime > 0.3) {
+        recordRecognitionTime(elapsedTime);
+      }
+    }
+
+    function resetTimer(startNew) {
+      stopTimer(true);
+      elapsedTime = 0;
+      const elCard = document.getElementById('timerCardDisplay');
+      const elHead = document.getElementById('timerHeaderDisplay');
+      if (elCard) elCard.textContent = '0.0s';
+      if (elHead) elHead.textContent = '0.0s';
+      if (startNew) startTimer();
+    }
+
+    function recordRecognitionTime(timeSec) {
+      if (!filteredDeck.length) return;
+      const item = filteredDeck[currentIndex];
+      
+      if (!personalBests[item.id] || timeSec < personalBests[item.id]) {
+        personalBests[item.id] = timeSec;
+        localStorage.setItem('rubik_personal_bests', JSON.stringify(personalBests));
+        updatePBDraw();
+      }
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      analyticsHistory.push({ date: todayStr, time: timeSec });
+      if (analyticsHistory.length > 200) analyticsHistory.shift();
+      localStorage.setItem('rubik_analytics_history', JSON.stringify(analyticsHistory));
+    }
+
+    function updatePBDraw() {
+      if (!filteredDeck.length) return;
+      const item = filteredDeck[currentIndex];
+      const pb = personalBests[item.id];
+      const badge = document.getElementById('pbBadge');
+      if (pb) {
+        badge.classList.remove('hidden');
+        badge.textContent = '🏆 PB: ' + pb.toFixed(1) + 's';
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
     function updateUI() {
-      let mCount = mastered.size;
-      document.getElementById('masteredText').textContent = `${mCount}/${RAW_DATA.length}`;
-      document.getElementById('masteredBar').style.width = `${(mCount/RAW_DATA.length)*100}%`;
+      const masteredCount = Object.values(srsData).filter(function(x) { return x.box === 'easy' || x.box === 'hard'; }).length;
+      document.getElementById('masteredText').textContent = masteredCount + '/' + RAW_DATA.length;
+      document.getElementById('masteredBar').style.width = ((masteredCount / RAW_DATA.length) * 100) + '%';
     }
 
     function setFilter(f) {
       currentFilter = f;
-      document.querySelectorAll('.filter-btn').forEach(b => {
-        let active = b.dataset.filter === f;
-        b.className = `filter-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${active ? 'bg-brand text-slate-900 shadow-md' : 'bg-slate-800 text-slate-400 border border-slate-700'}`;
+      document.querySelectorAll('.filter-btn').forEach(function(b) {
+        const active = b.dataset.filter === f;
+        if (active) {
+          b.className = 'filter-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-brand text-slate-900 shadow-md';
+        } else {
+          if (b.dataset.filter === 'due') b.className = 'filter-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-purple-500/20 text-purple-300 border border-purple-500/40';
+          else if (b.dataset.filter === 'hard') b.className = 'filter-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-rose-500/20 text-rose-300 border border-rose-500/40';
+          else b.className = 'filter-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-800 text-slate-400 border border-slate-700';
+        }
       });
-      filteredDeck = f === 'all' ? [...RAW_DATA] : RAW_DATA.filter(d => d.filter === f);
-      currentIndex = 0; isFlipped = false;
+
+      if (f === 'all') filteredDeck = RAW_DATA.slice();
+      else if (f === 'due') filteredDeck = RAW_DATA.filter(function(d) { return isDue(d.id); });
+      else if (f === 'hard') filteredDeck = RAW_DATA.filter(function(d) { return srsData[d.id] && srsData[d.id].box === 'again'; });
+      else filteredDeck = RAW_DATA.filter(function(d) { return d.filter === f; });
+
+      currentIndex = 0; 
+      isFlipped = false;
       renderCard();
+    }
+
+    function formatAlgoHTML(algoStr) {
+      return algoStr.replace(/([RLUDFBrludfbM])(['2]?)/g, function(m, l, s) {
+        return '<span class="' + (COLOR_MAP[l] || 'text-slate-200') + '">' + l + s + '</span>';
+      });
     }
 
     function renderCard() {
       try {
-        if (filteredDeck.length === 0) return;
+        if (filteredDeck.length === 0) {
+          document.getElementById('frontHintText').textContent = 'Không có thẻ nào trong bộ lọc này!';
+          return;
+        }
         const item = filteredDeck[currentIndex];
         if (!item) return;
 
-        document.getElementById('cardCounter').textContent = `Thẻ ${currentIndex + 1} / ${filteredDeck.length}`;
+        document.getElementById('cardCounter').textContent = 'Thẻ ' + (currentIndex + 1) + ' / ' + filteredDeck.length;
         document.getElementById('cardInner').classList.toggle('rotate-y-180', isFlipped);
         
-        // Mặt trước
-        let fBadge = document.getElementById('frontStepBadge');
+        const fBadge = document.getElementById('frontStepBadge');
         fBadge.textContent = item.step || '';
-        fBadge.className = `px-3 py-1.5 rounded-lg text-xs font-bold border ${item.type === 'pll' ? 'bg-sky-500/20 text-sky-400 border-sky-500/30' : 'bg-brand/20 text-brand border-brand/30'}`;
+        fBadge.className = 'px-3 py-1.5 rounded-lg text-xs font-bold border ' + (item.type === 'pll' ? 'bg-sky-500/20 text-sky-400 border-sky-500/30' : 'bg-brand/20 text-brand border-brand/30');
         document.getElementById('frontSvgContainer').innerHTML = renderSVG(item, false);
         document.getElementById('frontHintText').textContent = item.hint || '';
+        updatePBDraw();
 
-        // Mặt sau
-        document.getElementById('backFace').className = `absolute inset-0 backface-hidden rotate-y-180 bg-slate-800 border-2 rounded-[2rem] p-5 flex flex-col justify-between shadow-2xl ${item.type === 'pll' ? 'border-sky-500/50' : 'border-brand/50'}`;
+        document.getElementById('backFace').className = 'absolute inset-0 backface-hidden rotate-y-180 bg-slate-800 border-2 rounded-[2rem] p-4 sm:p-5 flex flex-col justify-between shadow-2xl ' + (item.type === 'pll' ? 'border-sky-500/50' : 'border-brand/50');
         document.getElementById('backStepLabel').textContent = item.step || '';
-        document.getElementById('backStepLabel').className = `text-[10px] font-extrabold uppercase tracking-wider ${item.type === 'pll' ? 'text-sky-400' : 'text-brand'}`;
+        document.getElementById('backStepLabel').className = 'text-[11px] font-extrabold uppercase tracking-wider ' + (item.type === 'pll' ? 'text-sky-400' : 'text-brand');
         document.getElementById('backCaseName').textContent = item.name || '';
         document.getElementById('backMiniSvg').innerHTML = renderSVG(item, true);
         
-        let algoHTML = (item.algo || '').replace(/([RLUDFBrludfbM])(['2]?)/g, (m, l, s) => `<span class="${COLOR_MAP[l] || 'text-slate-200'}">${l}${s}</span>`);
-        document.getElementById('backAlgorithm').innerHTML = algoHTML;
+        const effectiveAlgo = getEffectiveAlgo(item);
+        document.getElementById('backAlgorithm').innerHTML = formatAlgoHTML(effectiveAlgo);
         document.getElementById('backAltAlgo').textContent = item.alt || '';
         document.getElementById('backSetupText').textContent = item.setup || 'Cầm tùy ý.';
-      } catch (e) {
-        document.getElementById('frontHintText').textContent = "Lỗi hiển thị thẻ. Hãy tải lại trang.";
+
+        const badgeCustom = document.getElementById('customAlgoBadge');
+        if (customAlgos[item.id]) badgeCustom.classList.remove('hidden');
+        else badgeCustom.classList.add('hidden');
+
+        currentReverseScramble = generateReverseScramble(effectiveAlgo);
+        document.getElementById('backReverseScramble').textContent = currentReverseScramble;
+
+        toggleEditAlgo(false);
+        toggleVisualizer(false);
+
+        if (!isFlipped) {
+          resetTimer(true);
+          triggerFlashTimer();
+        }
+      } catch (e) {}
+    }
+
+    function flipCard() {
+      if (isSwiping || isEditingAlgo) return;
+      isFlipped = !isFlipped;
+      document.getElementById('cardInner').classList.toggle('rotate-y-180', isFlipped);
+
+      if (isFlipped) {
+        clearTimeout(flashTimeout);
+        stopTimer(false);
+        const timeBox = document.getElementById('backRecognitionTime');
+        if (timerActive && elapsedTime > 0.2) {
+          timeBox.classList.remove('hidden');
+          timeBox.textContent = '⏱️ ' + elapsedTime.toFixed(1) + 's';
+        } else {
+          timeBox.classList.add('hidden');
+        }
+      } else {
+        clearInterval(visPlayInterval);
+        visPlayInterval = null;
+        resetTimer(true);
+        triggerFlashTimer();
       }
     }
 
-    // CÁC HÀM TƯƠNG TÁC
-    function flipCard() { if(isSwiping) return; isFlipped = !isFlipped; document.getElementById('cardInner').classList.toggle('rotate-y-180', isFlipped); }
-    function nextCard() { if(!filteredDeck.length) return; isFlipped = false; currentIndex = (currentIndex + 1) % filteredDeck.length; renderCard(); }
-    function prevCard() { if(!filteredDeck.length) return; isFlipped = false; currentIndex = (currentIndex - 1 + filteredDeck.length) % filteredDeck.length; renderCard(); }
-    function shuffleCards() { for(let i=filteredDeck.length-1; i>0; i--){ const j=Math.floor(Math.random()*(i+1)); [filteredDeck[i],filteredDeck[j]]=[filteredDeck[j],filteredDeck[i]]; } currentIndex=0; isFlipped=false; renderCard(); showToast('Đã xáo trộn!'); }
-    
-    function rateCard(remembered) {
-      if(!filteredDeck.length) return;
-      const item = filteredDeck[currentIndex];
-      if (remembered) { mastered.add(item.id); showToast('Đã lưu!'); }
-      else { mastered.delete(item.id); showToast('Sẽ gặp lại!'); }
-      localStorage.setItem('rubik_ultimate_safe', JSON.stringify([...mastered]));
-      updateUI(); nextCard();
+    function nextCard() {
+      if (!filteredDeck.length) return;
+      isFlipped = false;
+      currentIndex = (currentIndex + 1) % filteredDeck.length;
+      renderCard();
     }
 
-    function copyAlgorithm() {
-      if(!filteredDeck.length) return;
-      const text = filteredDeck[currentIndex].algo;
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(text).then(() => showToast('Đã copy!')).catch(() => fallbackCopy(text));
-      } else { fallbackCopy(text); }
+    function prevCard() {
+      if (!filteredDeck.length) return;
+      isFlipped = false;
+      currentIndex = (currentIndex - 1 + filteredDeck.length) % filteredDeck.length;
+      renderCard();
     }
+
+    function shuffleCards() {
+      for (let i = filteredDeck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const temp = filteredDeck[i];
+        filteredDeck[i] = filteredDeck[j];
+        filteredDeck[j] = temp;
+      }
+      currentIndex = 0;
+      isFlipped = false;
+      renderCard();
+      showToast('Đã xáo trộn!');
+    }
+
+    function copyAlgorithm(textToCopy) {
+      if (!filteredDeck.length && !textToCopy) return;
+      const text = textToCopy || getEffectiveAlgo(filteredDeck[currentIndex]);
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function() { showToast('Đã copy!'); }).catch(function() { fallbackCopy(text); });
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
     function fallbackCopy(text) {
       const ta = document.createElement('textarea');
-      ta.value = text; document.body.appendChild(ta); ta.select();
-      try { document.execCommand('copy'); showToast('Đã copy!'); } catch(e) { showToast('Lỗi copy!'); }
+      ta.value = text; 
+      document.body.appendChild(ta); 
+      ta.select();
+      try { 
+        document.execCommand('copy'); 
+        showToast('Đã copy!'); 
+      } catch (e) { 
+        showToast('Lỗi copy!'); 
+      }
       document.body.removeChild(ta);
     }
+
     function showToast(msg) {
       const t = document.getElementById('toast');
-      t.textContent = msg; t.classList.remove('opacity-0');
-      setTimeout(() => t.classList.add('opacity-0'), 2000);
+      t.textContent = msg; 
+      t.classList.remove('opacity-0');
+      setTimeout(function() { t.classList.add('opacity-0'); }, 2000);
     }
+
     function setViewMode(mode) {
-      const fv = document.getElementById('flashcardView'), cv = document.getElementById('cheatsheetView');
-      const bf = document.getElementById('btnModeFlashcard'), bc = document.getElementById('btnModeCheatsheet');
-      if(mode === 'flashcard') {
-        fv.classList.remove('hidden'); cv.classList.add('hidden');
-        bf.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-brand text-slate-900 shadow';
-        bc.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white';
-      } else {
-        fv.classList.add('hidden'); cv.classList.remove('hidden'); cv.classList.add('flex');
-        bc.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-brand text-slate-900 shadow';
-        bf.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white';
+      const fv = document.getElementById('flashcardView');
+      const cv = document.getElementById('cheatsheetView');
+      const av = document.getElementById('analyticsView');
+      const bf = document.getElementById('btnModeFlashcard');
+      const bc = document.getElementById('btnModeCheatsheet');
+      const ba = document.getElementById('btnModeAnalytics');
+
+      fv.classList.add('hidden');
+      cv.classList.add('hidden');
+      av.classList.add('hidden');
+      bf.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white';
+      bc.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white';
+      ba.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white';
+
+      if (mode === 'flashcard') {
+        fv.classList.remove('hidden');
+        bf.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition-all bg-brand text-slate-900 shadow';
+        resetTimer(true);
+      } else if (mode === 'cheatsheet') {
+        cv.classList.remove('hidden');
+        cv.classList.add('flex');
+        bc.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition-all bg-brand text-slate-900 shadow';
+        stopTimer(true);
         renderCheatsheet();
+      } else if (mode === 'analytics') {
+        av.classList.remove('hidden');
+        av.classList.add('flex');
+        ba.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition-all bg-brand text-slate-900 shadow';
+        stopTimer(true);
+        renderAnalytics();
       }
     }
 
     function renderCheatsheet() {
       const grid = document.getElementById('cheatsheetGrid');
-      grid.innerHTML = RAW_DATA.map(item => `
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4 flex flex-col gap-3">
-          <div class="flex items-center gap-3 border-b border-slate-700/50 pb-2">
-            <div class="w-16 h-16 bg-slate-900 rounded-lg p-1">${renderSVG(item, true)}</div>
-            <div><span class="text-[10px] font-bold text-brand uppercase tracking-wider">${item.step}</span><h3 class="font-bold text-white text-base leading-tight">${item.name}</h3></div>
-          </div>
-          <div class="bg-slate-900 p-2 rounded-lg text-center font-mono font-bold text-sm text-slate-200">
-            ${(item.algo || '').replace(/([RLUDFBrludfbM])(['2]?)/g, (m, l, s) => `<span class="${COLOR_MAP[l] || 'text-slate-200'}">${l}${s}</span>`)}
-          </div>
-          <div class="bg-brand/10 p-2.5 rounded-lg border border-brand/20">
-            <p class="text-xs text-brand font-semibold mb-0.5">🎯 Setup:</p><p class="text-xs text-slate-300">${item.setup}</p>
-          </div>
-        </div>
-      `).join('');
+      grid.innerHTML = RAW_DATA.map(function(item) {
+        const algo = getEffectiveAlgo(item);
+        return '<div class="bg-slate-800 border border-slate-700 rounded-2xl p-4 flex flex-col gap-3">' +
+          '<div class="flex items-center gap-3 border-b border-slate-700/50 pb-2">' +
+            '<div class="w-14 h-14 bg-slate-900 rounded-xl p-1 shrink-0">' + renderSVG(item, true) + '</div>' +
+            '<div><span class="text-[10px] font-bold text-brand uppercase tracking-wider">' + item.step + '</span><h3 class="font-bold text-white text-base leading-tight">' + item.name + '</h3></div>' +
+          '</div>' +
+          '<div class="bg-slate-900 p-2.5 rounded-xl text-center font-mono font-bold text-sm text-slate-200">' + formatAlgoHTML(algo) + '</div>' +
+          '<div class="bg-brand/10 p-2.5 rounded-xl border border-brand/20"><p class="text-xs text-brand font-semibold mb-0.5">🎯 Setup:</p><p class="text-xs text-slate-300">' + item.setup + '</p></div>' +
+        '</div>';
+      }).join('');
     }
 
-    // VUỐT MÀN HÌNH
+    function renderAnalytics() {
+      const masteredCount = Object.values(srsData).filter(function(x) { return x.box === 'easy' || x.box === 'hard'; }).length;
+      document.getElementById('statMasteredCount').textContent = masteredCount + '/' + RAW_DATA.length;
+
+      const dueCount = RAW_DATA.filter(function(d) { return isDue(d.id); }).length;
+      document.getElementById('statDueCount').textContent = dueCount;
+
+      let avgTime = 0;
+      if (analyticsHistory.length > 0) {
+        const sum = analyticsHistory.reduce(function(acc, cur) { return acc + cur.time; }, 0);
+        avgTime = sum / analyticsHistory.length;
+      }
+      document.getElementById('statAvgTime').textContent = avgTime.toFixed(1) + 's';
+
+      if (typeof Chart === 'undefined') return;
+
+      const ctxTime = document.getElementById('timeChart').getContext('2d');
+      if (timeChartInstance) timeChartInstance.destroy();
+
+      const daysMap = {};
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        daysMap[dateStr] = [];
+      }
+
+      analyticsHistory.forEach(function(item) {
+        if (daysMap[item.date]) {
+          daysMap[item.date].push(item.time);
+        }
+      });
+
+      const labels = Object.keys(daysMap).map(function(dateStr) { return dateStr.slice(5); });
+      const dataPoints = Object.values(daysMap).map(function(arr) {
+        if (arr.length === 0) return 0;
+        const s = arr.reduce(function(a, b) { return a + b; }, 0);
+        return parseFloat((s / arr.length).toFixed(1));
+      });
+
+      timeChartInstance = new Chart(ctxTime, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Thời gian TB (giây)',
+            data: dataPoints,
+            backgroundColor: '#0EA5E9',
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { grid: { color: '#334155' }, ticks: { color: '#94A3B8' } },
+            x: { grid: { display: false }, ticks: { color: '#94A3B8' } }
+          }
+        }
+      });
+
+      const ctxError = document.getElementById('errorChart').getContext('2d');
+      if (errorChartInstance) errorChartInstance.destroy();
+
+      const topErrors = Object.entries(errorCounts)
+        .sort(function(a, b) { return b[1] - a[1]; })
+        .slice(0, 5);
+
+      let errorLabels = topErrors.map(function(e) {
+        const found = RAW_DATA.find(function(d) { return d.id === e[0]; });
+        return found ? found.name : e[0];
+      });
+      let errorData = topErrors.map(function(e) { return e[1]; });
+
+      if (errorLabels.length === 0) {
+        errorLabels = ['Chưa có dữ liệu lỗi'];
+        errorData = [1];
+      }
+
+      errorChartInstance = new Chart(ctxError, {
+        type: 'doughnut',
+        data: {
+          labels: errorLabels,
+          datasets: [{
+            data: errorData,
+            backgroundColor: ['#EF4444', '#F59E0B', '#10B981', '#0EA5E9', '#8B5CF6']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: '#94A3B8', boxWidth: 12 } }
+          }
+        }
+      });
+    }
+
+    function toggleTwoSidedMode() {
+      twoSidedMode = !twoSidedMode;
+      const btn = document.getElementById('btnTwoSided');
+      if (twoSidedMode) {
+        btn.className = 'px-2 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1 bg-sky-500/20 border-sky-500/50 text-sky-300 shadow-lg';
+        showToast('📐 Bật Góc nhìn 2 mặt: Ẩn mặt Sau & Trái');
+      } else {
+        btn.className = 'px-2 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1 bg-slate-900 border-slate-700 text-slate-400 hover:text-white';
+        showToast('📐 Tắt Góc nhìn 2 mặt');
+      }
+      renderCard();
+      if (!document.getElementById('cheatsheetView').classList.contains('hidden')) renderCheatsheet();
+    }
+
+    function toggleFlashMode() {
+      flashMode = !flashMode;
+      const btn = document.getElementById('btnFlashMode');
+      if (flashMode) {
+        btn.className = 'px-2 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1 bg-brand/20 border-brand/50 text-brand';
+        showToast('👁️ Bật chế độ Flash (Ẩn sơ đồ sau 2s)');
+        triggerFlashTimer();
+      } else {
+        btn.className = 'px-2 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1 bg-slate-900 border-slate-700 text-slate-400 hover:text-white';
+        clearTimeout(flashTimeout);
+        document.getElementById('frontSvgContainer').style.opacity = '1';
+        showToast('👁️ Tắt chế độ Flash');
+      }
+    }
+
+    function triggerFlashTimer() {
+      clearTimeout(flashTimeout);
+      const svgContainer = document.getElementById('frontSvgContainer');
+      if (!svgContainer) return;
+      svgContainer.style.opacity = '1';
+      if (flashMode && !isFlipped) {
+        flashTimeout = setTimeout(function() {
+          if (!isFlipped) {
+            svgContainer.style.opacity = '0';
+          }
+        }, 2000);
+      }
+    }
+
     (function() {
       const zone = document.getElementById('cardWrapper');
-      let sx=0, sy=0, moved=false;
-      zone.addEventListener('touchstart', e => { sx=e.touches[0].clientX; sy=e.touches[0].clientY; moved=false; }, {passive:true});
-      zone.addEventListener('touchmove', e => { if(Math.abs(e.touches[0].clientX-sx)>10 || Math.abs(e.touches[0].clientY-sy)>10) moved=true; }, {passive:true});
-      zone.addEventListener('touchend', e => {
-        if(!moved) return;
-        let dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
-        if(Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
-          isSwiping = true;
-          dx > 0 ? prevCard() : nextCard();
-          setTimeout(() => isSwiping = false, 300);
-        }
-      }, {passive:true});
+      let sx = 0, sy = 0, moved = false;
+      if (zone) {
+        zone.addEventListener('touchstart', function(e) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; moved = false; }, {passive:true});
+        zone.addEventListener('touchmove', function(e) { if (Math.abs(e.touches[0].clientX - sx) > 10 || Math.abs(e.touches[0].clientY - sy) > 10) moved = true; }, {passive:true});
+        zone.addEventListener('touchend', function(e) {
+          if (!moved) return;
+          const dx = e.changedTouches[0].clientX - sx;
+          const dy = e.changedTouches[0].clientY - sy;
+          if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+            isSwiping = true;
+            dx > 0 ? prevCard() : nextCard();
+            setTimeout(function() { isSwiping = false; }, 300);
+          }
+        }, {passive:true});
+      }
     })();
 
-    // KHỞI CHẠY KHI DOM SẴN SÀNG
-    document.addEventListener('DOMContentLoaded', initApp);
+    document.addEventListener('keydown', function(e) {
+      if (isEditingAlgo) return;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        flipCard();
+      } else if (e.code === 'ArrowRight') {
+        e.preventDefault();
+        nextCard();
+      } else if (e.code === 'ArrowLeft') {
+        e.preventDefault();
+        prevCard();
+      }
+    });
 
+    document.addEventListener('DOMContentLoaded', initApp);
   </script>
 </body>
 </html>
